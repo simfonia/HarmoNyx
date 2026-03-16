@@ -1,0 +1,378 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #1e1e1e;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: white;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+header {
+    height: 50px;
+    background-color: #252526;
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    justify-content: flex-start; /* 改為靠左對齊 */
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 180px; /* 設定固定寬度，近似於 Toolbox 的寬度 */
+    flex-shrink: 0;
+}
+
+/* 檔案狀態樣式 (同 Cocoya) */
+.file-status-container {
+    display: flex;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin: 0 15px;
+    border: 1px solid #444;
+    font-size: 13px;
+    color: #aaa;
+    min-width: 120px;
+    transition: all 0.3s;
+}
+
+.file-dirty-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #7f8c8d; /* 預設灰色 */
+    border-radius: 50%;
+    margin-right: 8px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.is-dirty .file-dirty-dot {
+    background-color: #FE2F89; /* 變髒時變桃紅色 */
+    box-shadow: 0 0 5px #FE2F89;
+}
+
+.is-dirty .file-status-container {
+    border-color: #666;
+    color: #eee;
+}
+
+.app-logo {
+    width: 24px;
+    height: 24px;
+}
+
+h1 {
+    font-size: 16px;
+    margin: 0;
+    color: #cccccc;
+    font-weight: 500;
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.icon-btn img {
+    width: 22px;
+    height: 22px;
+    opacity: 0.85;
+}
+
+.icon-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.icon-btn:hover img {
+    opacity: 1;
+}
+
+.icon-btn:active {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(1px);
+}
+
+.toolbar .sep {
+    width: 1px;
+    height: 24px;
+    background-color: #444;
+    margin: 0 5px;
+}
+
+/* 下拉選單樣式 */
+.dropdown-menu {
+    position: absolute;
+    top: 45px;
+    right: 15px;
+    background-color: #252526;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+    min-width: 160px;
+    padding: 5px 0;
+    display: none;
+    flex-direction: column;
+}
+
+.dropdown-menu.show {
+    display: flex;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    font-size: 13px;
+    color: #ccc;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #3e3e42;
+    color: white;
+}
+
+/* 子選單樣式 */
+.has-submenu {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.submenu {
+    position: absolute;
+    top: -5px;
+    right: 100%; /* 顯示在左側 */
+    background-color: #252526;
+    border: 1px solid #444;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    min-width: 140px;
+    padding: 5px 0;
+    display: none;
+    flex-direction: column;
+}
+
+.has-submenu:hover .submenu {
+    display: flex;
+}
+
+.dropdown-item img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.8;
+}
+
+.dark-select {
+    background-color: #2d2d2d;
+    color: #cccccc;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 13px;
+    outline: none;
+    cursor: pointer;
+}
+
+.dark-select:hover {
+    border-color: #666;
+}
+
+/* Update Button Styles */
+#update-btn {
+    position: relative;
+}
+
+.update-hidden {
+    display: none !important;
+}
+
+.update-spin-ccw {
+    animation: spin-ccw 2s linear infinite;
+}
+
+@keyframes spin-ccw {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+}
+
+.update-bounce-pulse {
+    animation: bounce-pulse 2s infinite;
+}
+
+@keyframes bounce-pulse {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); filter: brightness(1); }
+    40% { transform: translateY(-5px); filter: brightness(1.5) drop-shadow(0 0 5px #FE2F89); }
+    60% { transform: translateY(-3px); filter: brightness(1.2); }
+}
+
+.update-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background-color: #75FB4C; /* 綠色點點 */
+    border-radius: 50%;
+    display: none;
+}
+
+.has-update .update-badge {
+    display: block;
+    box-shadow: 0 0 5px #75FB4C;
+}
+
+/* 旋轉動畫：檢查更新中 */
+.update-spin {
+    animation: spin 2s linear infinite;
+}
+
+/* 跳動動畫：發現新版本 */
+.update-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Minimap Toggle Button */
+#minimap-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    background: #E67E22; /* Performance Orange */
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 101;
+    font-size: 14px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, background-color 0.2s;
+    user-select: none;
+}
+
+#minimap-toggle:hover {
+    background-color: #D35400;
+}
+
+#minimap-toggle.collapsed {
+    background-color: #7F8C8D;
+}
+
+/* Ensure Minimap is below Tooltips but above Workspace */
+.blockly-minimap {
+    z-index: 100 !important;
+    transition: opacity 0.3s, transform 0.3s;
+    top: 10px !important;
+    right: 50px !important;
+    left: auto !important;
+    border: 1px solid #333;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+}
+
+.blockly-minimap.collapsed {
+    transform: scale(0);
+    opacity: 0;
+    pointer-events: none;
+}
+
+main {
+    flex-grow: 1;
+    display: flex;
+    overflow: hidden; /* 防止滾動條干擾 */
+}
+
+#blocklyDiv {
+    flex: 3;
+    height: 100%;
+    position: relative;
+    background-color: #1e1e1e;
+}
+
+#stage {
+    flex: 1;
+    background-color: #000;
+    border-left: 1px solid #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 250px;
+}
+
+#waveformCanvas {
+    width: 90%;
+    height: 200px;
+    border: 1px solid #444;
+}
+
+button {
+    background-color: #E67E22;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #D35400;
+}
+
+/* 提升積木刪除的視覺回饋：當積木進入 Toolbox 時確保層級正確 */
+.blocklyToolboxDiv {
+    transition: background-color 0.2s;
+}
+
+/* 當有積木正在被拖曳且靠近邊緣時，稍微加深 Toolbox 背景 (可選) */
+.blocklyToolboxDelete {
+    cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23E74C3C' d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'/%3E%3C/svg%3E"), auto !important;
+}

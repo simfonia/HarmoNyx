@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>WaveCode 系統規格書</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; line-height: 1.6; color: #333; max-width: 900px; margin: 40px auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; border-left: 5px solid #2980b9; padding-left: 10px; }
+        code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; font-family: 'Consolas', monospace; }
+        .tech-stack { display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0; }
+        .tech-card { background: #ecf0f1; padding: 15px; border-radius: 8px; flex: 1; min-width: 200px; }
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.85em; font-weight: bold; background: #2ecc71; color: white; }
+        .lib-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .lib-table th, .lib-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        .lib-table th { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+    <h1>WaveCode 系統規格書 <span class="status-badge">Sampler V2 & Multi-Threading</span></h1>
+    
+    <section>
+        <h2>1. 核心技術棧 (Tech Stack)</h2>
+        <table class="lib-table">
+            <thead>
+                <tr>
+                    <th>函式庫</th>
+                    <th>語言</th>
+                    <th>主要用途</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>fundsp</code></td>
+                    <td>Rust</td>
+                    <td>DSP 運算核心，負責所有音訊節點 (OSC, Filter, Net) 的處理。</td>
+                </tr>
+                <tr>
+                    <td><code>cpal</code></td>
+                    <td>Rust</td>
+                    <td>跨平台音訊 I/O，負責與 Windows WASAPI 驅動直接對接。</td>
+                </tr>
+                <tr>
+                    <td><code>hound</code></td>
+                    <td>Rust</td>
+                    <td>WAV 檔案解碼器，支援 16/24/32-bit 取樣讀取。</td>
+                </tr>
+                <tr>
+                    <td><code>puremp3</code></td>
+                    <td>Rust</td>
+                    <td>純 Rust 實作的 MP3 解碼器，用於鋼琴音色庫的讀取。</td>
+                </tr>
+                <tr>
+                    <td><code>rayon</code></td>
+                    <td>Rust</td>
+                    <td>數據並行庫，用於程式啟動時利用多核心 CPU 進行背景音色並行載入。</td>
+                </tr>
+                <tr>
+                    <td><code>Tauri v2</code></td>
+                    <td>Rust/JS</td>
+                    <td>原生視窗容器與橋接層，處理檔案系統與前端指令通訊。</td>
+                </tr>
+                <tr>
+                    <td><code>Blockly</code></td>
+                    <td>JS</td>
+                    <td>視覺化編程介面。</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section>
+        <h2>2. 高品質取樣器技術 (Sampler v2)</h2>
+        <ul>
+            <li><strong>線性插值變速 (Linear Interpolation)</strong>：
+                <ul>
+                    <li>自定義 <code>VariableSpeedPlayer</code> 節點，解決了變速播放時的數位鋸齒雜訊。</li>
+                    <li>支援動態比率 (Ratio) 調整，實現鋼琴、小提琴的多取樣音高映射。</li>
+                </ul>
+            </li>
+            <li><strong>預先載入與背景並行</strong>：
+                <ul>
+                    <li>程式啟動後自動建立背景執行緒掃描音色庫。</li>
+                    <li>利用 <code>rayon</code> 實現多執行緒並行解碼，數百個音檔可在 3 秒內完成加載。</li>
+                </ul>
+            </li>
+            <li><strong>音量標準化 (Normalization)</strong>：
+                <ul>
+                    <li>載入期自動執行 Peak Normalization。</li>
+                    <li>針對打擊樂 (Kick) 提供額外增益補償 (+1.5x)，平衡與 MP3 取樣間的響度差異。</li>
+                </ul>
+            </li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>3. 系統穩定性機制</h2>
+        <ul>
+            <li><strong>重啟音訊引擎 (Rocket Launch)</strong>：解決 Windows 筆電睡眠喚醒後常見的 WASAPI 時鐘偏移雜訊。</li>
+            <li><strong>全域硬停止 (Hard Stop)</strong>：Stop 指令不僅關閉 Gate，還會立即將所有活躍聲部替換為靜音單元，切斷長 Release 尾音。</li>
+            <li><strong>'static 生命週期管理</strong>：使用 <code>Box::leak</code> 管理全域音色 Arc 引用，根除音訊執行緒非法記憶體存取的閃退 (Panic) 風險。</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>4. 介面與 UX 規格</h2>
+        <ul>
+            <li><strong>多取樣映射</strong>：選擇 <code>Piano (Multi)</code> 時，引擎自動根據頻率匹配最接近的錄音檔。</li>
+            <li><strong>系統設定選單</strong>：整合語系切換 (i18n) 與重啟功能，支援滑鼠懸停展開子選單。</li>
+            <li><strong>更新系統</strong>：具備逆時針旋轉與彈跳色彩漸變動畫，實時反應版本狀態。</li>
+        </ul>
+    </section>
+
+    <footer style="margin-top: 50px; font-size: 0.8em; color: #7f8c8d; border-top: 1px solid #eee; padding-top: 10px;">
+        最後更新日期：2026-03-14 | WaveCode 開發團隊
+    </footer>
+</body>
+</html>

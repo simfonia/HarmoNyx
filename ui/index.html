@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HarmoNyx IDE</title>
+    <style>
+        /* 強制確保 Blockly SVG 可見 */
+        .blocklyWidgetDiv, .blocklyTooltipDiv { z-index: 1000; }
+        .blocklySvg { background-color: #1e1e1e !important; width: 100%; height: 100%; display: block; }
+        .blocklyMainBackground { fill: #1e1e1e !important; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-left">
+                <img src="/icons/icon.png" class="app-logo" alt="Logo">
+                <h1>HarmoNyx</h1>
+            </div>
+            <div id="file-status" class="file-status-container">
+                <span class="file-dirty-dot"></span>
+                <span id="display-filename">未命名專案</span>
+            </div>
+            <div class="toolbar">
+                <div id="new-btn" class="icon-btn" data-i18n-title="WAVECODE_NEW"><img src="/icons/new_24dp_FE2F89.png"></div>
+                <div id="examples-btn" class="icon-btn" data-i18n-title="WAVECODE_EXAMPLES"><img src="/icons/examples_24dp_FE2F89.png"></div>
+                <div id="open-btn" class="icon-btn" data-i18n-title="WAVECODE_OPEN"><img src="/icons/load_project_24dp_FE2F89.png"></div>
+                <div id="save-btn" class="icon-btn" data-i18n-title="WAVECODE_SAVE"><img src="/icons/save_24dp_FE2F89.png"></div>
+                <div class="sep"></div>
+                <div id="run-btn" class="icon-btn" data-i18n-title="WAVECODE_RUN"><img src="/icons/run_blocks_24dp_75FB4C.png"></div>
+                <div id="stop-btn" class="icon-btn" data-i18n-title="WAVECODE_STOP"><img src="/icons/no_sound_24dp_FE2F89.png"></div>
+                <div class="sep"></div>
+                <div id="settings-btn" class="icon-btn" data-i18n-title="WAVECODE_SETTINGS"><img src="/icons/settings_24dp_FE2F89.png"></div>
+                <div class="sep"></div>
+                <div id="update-btn" class="icon-btn update-hidden" data-i18n-title="WAVECODE_UPDATE_CHECK">
+                    <img src="/icons/published_with_changes_24dp_75FB4C.png" class="update-icon">
+                    <span class="update-badge"></span>
+                </div>
+            </div>
+        </header>
+        <main>
+            <div id="blocklyDiv"></div>
+            <div id="stage">
+                <canvas id="waveformCanvas"></canvas>
+            </div>
+        </main>
+    </div>
+    
+    <!-- 引入 Blockly (來自 public/lib) -->
+    <script src="/lib/blockly_compressed.js"></script>
+    <script src="/lib/blocks_compressed.js"></script>
+    <script src="/lib/javascript_compressed.js"></script>
+    <script src="/lib/zh-hant.js"></script>
+    <!-- 引入 Blockly Plugins -->
+    <script src="/lib/field-multilineinput.js"></script>
+    <script src="/lib/field-colour.js"></script>
+    <script src="/lib/scroll-options.js"></script>
+    <script src="/lib/workspace-minimap.js"></script>
+    <script src="/lib/blockly-modal.js"></script>
+
+    <!-- Vite 模組進入點 -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
