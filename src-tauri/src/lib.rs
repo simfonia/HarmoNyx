@@ -32,7 +32,12 @@ async fn run_processing(
     // 取得絕對路徑字串
     let sketch_dir_str = sketch_dir.to_str().ok_or("Failed to convert path to string")?;
 
-    // 4. 資源掛載 (TODO: 實作 Junctions)
+    // 4. 資源掛載 (Junctions)
+    let samples_src = utils::get_samples_path(&app_handle);
+    let samples_dest = sketch_dir.join("data"); // Processing 預期資源在 data/ 下
+    if let Err(e) = utils::create_platform_link(&samples_src, &samples_dest) {
+        println!("Warning: Failed to create junction for samples: {}", e);
+    }
     
     // 5. 終止舊進程 (如果存在) - 呼叫共用的停止邏輯
     stop_internal(&state).await;
@@ -83,6 +88,18 @@ async fn stop_processing(state: State<'_, ProcessState>) -> Result<String, Strin
     Ok("Stopped".to_string())
 }
 
+#[tauri::command]
+async fn save_project(xml_content: String, path: String) -> Result<String, String> {
+    fs::write(&path, xml_content).map_err(|e| e.to_string())?;
+    Ok("Saved".to_string())
+}
+
+#[tauri::command]
+async fn load_project(path: String) -> Result<String, String> {
+    let content = fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    Ok(content)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   tauri::Builder::default()
@@ -93,7 +110,12 @@ pub fn run() {
     .manage(ProcessState {
         child: Arc::new(Mutex::new(None)),
     })
-    .invoke_handler(tauri::generate_handler![run_processing, stop_processing])
+    .invoke_handler(tauri::generate_handler![
+        run_processing, 
+        stop_processing,
+        save_project,
+        load_project
+    ])
     .setup(|app| {
       if cfg!(debug_assertions) {
         app.handle().plugin(

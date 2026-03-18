@@ -14,22 +14,66 @@ pub fn get_resource_path(app_handle: &tauri::AppHandle, sub_path: &str) -> PathB
     base_path.join(sub_path)
 }
 
+/// 獲取 samples 資料夾的路徑，自動適應開發與生產環境
+pub fn get_samples_path(app_handle: &tauri::AppHandle) -> PathBuf {
+    // 1. 檢查開發環境下的專案根目錄 (相對於 src-tauri 往上找)
+    let search_paths = [
+        PathBuf::from("resources/samples"),
+        PathBuf::from("..").join("resources/samples"),
+        PathBuf::from("..").join("..").join("resources/samples"),
+    ];
+
+    for path in &search_paths {
+        if path.exists() {
+            return fs::canonicalize(path).unwrap();
+        }
+    }
+
+    // 2. 檢查生產環境 (Tauri Resource Path)
+    app_handle.path().resource_dir().expect("Failed to get resource dir")
+        .join("resources")
+        .join("samples")
+}
+
 /// 跨平台目錄連結 (Windows 使用 Junction, Unix 使用 Symlink)
 pub fn create_platform_link(target: &Path, link: &Path) -> std::io::Result<()> {
+    // 如果連結已存在，先刪除
     if link.exists() {
         if link.is_dir() {
-            fs::remove_dir_all(link)?;
+            // Windows 下若是 Junction/Symlink，remove_dir_all 可能會刪除內容，
+            // 建議使用 fs::remove_dir 或特定指令，但對於開發用途先這樣
+            let _ = fs::remove_dir_all(link);
         } else {
-            fs::remove_file(link)?;
+            let _ = fs::remove_file(link);
         }
     }
     
     // 確保父目錄存在
     if let Some(parent) = link.parent() {
-        fs::create_dir_all(parent)?;
+        let _ = fs::create_dir_all(parent);
     }
 
-    symlink_directory(target, link)
+    #[cfg(windows)]
+    {
+        // Windows 使用 mklink /J 建立 Junction (不需管理員權限)
+        let target_str = target.to_str().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid target path"))?;
+        let link_str = link.to_str().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid link path"))?;
+        
+        let status = std::process::Command::new("cmd")
+            .args(&["/C", "mklink", "/J", link_str, target_str])
+            .status()?;
+        
+        if status.success() {
+            Ok(())
+        } else {
+            Err(std::io::Error::new(std::io::ErrorKind::Other, "mklink failed"))
+        }
+    }
+
+    #[cfg(unix)]
+    {
+        symlink_directory(target, link)
+    }
 }
 
 /// 智能搜尋 processing-java 執行檔路徑

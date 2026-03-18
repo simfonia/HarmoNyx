@@ -54,8 +54,8 @@ Blockly.Processing.init = function(workspace) {
   Blockly.Processing.draws_ = Object.create(null); 
   Blockly.Processing.keyEvents_ = [];
 
-  // Helper functions
-  Blockly.Processing.definitions_['Helper_Core'] = `
+  // 1. 核心工具函式 (不會被覆寫)
+  Blockly.Processing.definitions_['Helper_Utils'] = `
 float floatVal(Object o) {
   if (o == null) return 0.0f;
   if (o instanceof Number) return ((Number)o).floatValue();
@@ -69,7 +69,10 @@ int getMidi(Object o) {
   String s = o.toString().trim();
   try { return (int)Float.parseFloat(s); } catch (Exception e) { return noteToMidi(s); }
 }
+`;
 
+  // 2. 基礎音訊輔助函式 (可被超級舞台的 GENERAL_HELPERS 覆寫)
+  Blockly.Processing.definitions_['Helpers'] = `
 int noteToMidi(String note) {
   String n = note.toUpperCase(); if (n.equals("R")) return -1; if (n.equals("X")) return 69;
   int octave = 4; if (n.length() > 1 && Character.isDigit(n.charAt(n.length()-1))) { 
@@ -160,11 +163,23 @@ Blockly.Processing.finish = function(code) {
   const fullDrawCode = (drawParts.join('\n') + '\n' + code).trim();
   const drawCodeStr = 'void draw() {\n  ' + (fullDrawCode ? fullDrawCode.replace(/\n/g, '\n  ') : '') + '\n}\n';
 
-  // 6. Combine all
+  // 6. Process Event Placeholders (Key Events)
+  let finalDefinitions = definitionsStr;
+  const keyPressedCode = (Blockly.Processing.keyEvents_ || [])
+    .filter(e => e.type === 'pressed')
+    .map(e => e.code).join('\n  ');
+  const keyReleasedCode = (Blockly.Processing.keyEvents_ || [])
+    .filter(e => e.type === 'released')
+    .map(e => e.code).join('\n  ');
+
+  finalDefinitions = finalDefinitions.replace('{{KEY_PRESSED_EVENT_PLACEHOLDER}}', keyPressedCode);
+  finalDefinitions = finalDefinitions.replace('{{KEY_RELEASED_EVENT_PLACEHOLDER}}', keyReleasedCode);
+
+  // 7. Combine all
   let segments = [];
   if (importsStr) segments.push(importsStr);
   if (globalVars) segments.push(globalVars);
-  if (definitionsStr) segments.push(definitionsStr);
+  if (finalDefinitions) segments.push(finalDefinitions);
   segments.push(setupCode);
   segments.push(drawCodeStr);
 
@@ -196,19 +211,54 @@ Blockly.Processing.injectAudioCore = function() {
   
   Blockly.Processing.addImport("import ddf.minim.*;");
   Blockly.Processing.addImport("import ddf.minim.ugens.*;");
-  Blockly.Processing.addImport("import java.util.LinkedHashMap;");
+  Blockly.Processing.addImport("import java.util.*;");
   Blockly.Processing.addImport("import java.util.concurrent.*;");
 
   var g = Blockly.Processing.global_vars_;
+  g['minim'] = "Minim minim;";
+  g['out'] = "AudioOutput out;";
   g['instrumentMap'] = "LinkedHashMap<String, String> instrumentMap = new LinkedHashMap<String, String>();";
   g['instrumentADSR'] = "LinkedHashMap<String, float[]> instrumentADSR = new LinkedHashMap<String, float[]>();";
   g['instrumentVolumes'] = "HashMap<String, Float> instrumentVolumes = new HashMap<String, Float>();";
+  g['chords'] = "HashMap<String, String[]> chords = new HashMap<String, String[]>();";
   g['currentInstrument'] = 'String currentInstrument = "default";';
+  g['lastInstrument'] = 'String lastInstrument = "";';
   g['mainMixer'] = "SBSummer mainMixer;";
   g['masterEffectEnd'] = "UGen masterEffectEnd;";
   g['masterGainUGen'] = "Gain masterGainUGen;";
+  g['harmonicPartials'] = "HashMap<String, float[]> harmonicPartials = new HashMap<String, float[]>();";
+  g['additiveConfigs'] = "HashMap<String, List<SynthComponent>> additiveConfigs = new HashMap<String, List<SynthComponent>>();";
+  g['samplerMap'] = "HashMap<String, Sampler> samplerMap = new HashMap<String, Sampler>();";
+  g['samplerGainMap'] = "HashMap<String, Gain> samplerGainMap = new HashMap<String, Gain>();";
+  g['melodicSamplers'] = "HashMap<String, MelodicSampler> melodicSamplers = new HashMap<String, MelodicSampler>();";
+  g['activeMelodyCount'] = "int activeMelodyCount = 0;";
+  g['melodyLock'] = "final Object melodyLock = new Object();";
+  g['isCountingIn'] = "volatile boolean isCountingIn = false;";
+  g['activeNotes'] = "ConcurrentHashMap<String, ADSR> activeNotes = new ConcurrentHashMap<String, ADSR>();";
+  g['midiKeysHeld'] = "ConcurrentHashMap<Integer, String> midiKeysHeld = new ConcurrentHashMap<Integer, String>();";
+  g['pcKeysHeld'] = "HashMap<Integer, String> pcKeysHeld = new HashMap<Integer, String>();";
+  g['midiBusses'] = "HashMap<String, MidiBus> midiBusses = new HashMap<String, MidiBus>();";
+  g['instrumentMixConfigs'] = "HashMap instrumentMixConfigs = new HashMap();";
+  g['isMasterClipping'] = "volatile boolean isMasterClipping = false;";
+  g['clippingTimer'] = "long clippingTimer = 0;";
+  g['pitchTranspose'] = "int pitchTranspose = 0;";
   
-  // 基礎音訊變數
+  g['instrumentMixers'] = "HashMap instrumentMixers = new HashMap();";
+  g['instrumentEffectEnds'] = "HashMap instrumentEffectEnds = new HashMap();";
+  g['instrumentFilters'] = "HashMap instrumentFilters = new HashMap();";
+  g['instrumentDelays'] = "HashMap instrumentDelays = new HashMap();";
+  g['instrumentBitCrushers'] = "HashMap instrumentBitCrushers = new HashMap();";
+  g['instrumentCompressors'] = "HashMap instrumentCompressors = new HashMap();";
+  g['instrumentLimiters'] = "HashMap instrumentLimiters = new HashMap();";
+  g['instrumentWaveshapers'] = "HashMap instrumentWaveshapers = new HashMap();";
+  g['instrumentReverbs'] = "HashMap instrumentReverbs = new HashMap();";
+  g['instrumentFlangers'] = "HashMap instrumentFlangers = new HashMap();";
+  g['instrumentAutoFilters'] = "HashMap instrumentAutoFilters = new HashMap();";
+  g['instrumentAutoFilterLFOs'] = "HashMap instrumentAutoFilterLFOs = new HashMap();";
+  g['instrumentPitchMods'] = "HashMap instrumentPitchMods = new HashMap();";
+  g['instrumentPitchModLFOs'] = "HashMap instrumentPitchModLFOs = new HashMap();";
+  g['instrumentPans'] = "HashMap instrumentPans = new HashMap();";
+
   g['bpm'] = "float bpm = 120.0;";
   g['masterGain'] = "float masterGain = -5.0;";
   g['defAdsrA'] = "float defAdsrA = 0.01;";

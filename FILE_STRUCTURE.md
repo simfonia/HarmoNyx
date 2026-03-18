@@ -1,31 +1,42 @@
 # HarmoNyx 專案結構 (FILE_STRUCTURE.md)
 
+## 專案根目錄
 C:\Workspace\HarmoNyx\
-├───log\                    # 專案日誌與進度紀錄
-│   ├───work\               # 每日工作細節
-│   ├───todo.md             # 任務清單
-│   ├───handover.md         # 跨對話任務交接
-│   └───details.md          # 技術細節
-├───src-tauri\              # Tauri (Rust) 後端邏輯
+├───.gitignore
+├───FILE_STRUCTURE.md
+├───GEMINI.md
+├───LICENSE (MIT License)
+├───README.md (GitHub Project Intro)
+├───log\ (專案日誌與進度追蹤)
+│   ├───details.md (技術細節紀錄)
+│   ├───handover.md (任務交接)
+│   ├───todo.md (任務清單)
+│   └───work\ (每日工作日誌)
+├───resources\ (靜態資產與資源)
+│   ├───examples\ (內建範例專案)
+│   ├───modules\ (Blockly 模組定義)
+│   └───samples\ (音訊樣本庫)
+├───src-tauri\ (Tauri 後端 - Rust)
 │   ├───src\
-│   │   ├───lib.rs          # 指令註冊 (run_processing)
-│   │   ├───main.rs         # 程式進入點
-│   │   └───utils.rs        # 路徑解析與跨平台輔助
-│   ├───Cargo.toml          # Rust 依賴配置
-│   └───tauri.conf.json     # Tauri 應用配置
-├───ui\                     # 前端 UI (Vite + Blockly)
-│   ├───public\
-│   │   ├───icons\          # UI 圖示
-│   │   └───lib\            # 外部壓縮程式庫 (Blockly, Minimap)
+│   │   ├───lib.rs (主邏輯、Tauri Commands)
+│   │   ├───main.rs (進入點)
+│   │   └───utils.rs (路徑處理、資源掛載工具)
+│   ├───Cargo.toml (依賴管理)
+│   └───tauri.conf.json (Tauri 設定檔)
+├───ui\ (前端介面 - Vite + Vanilla JS)
 │   ├───src\
-│   │   ├───blocks\         # 積木定義 (遷移自 #stage)
-│   │   ├───generators\     # Processing 產生器 (遷移自 #stage)
-│   │   ├───modules\        # 核心模組 (api, toolbox, ui_utils)
-│   │   ├───main.js         # 前端主進入點
-│   │   ├───preinit.js      # 全局變數預初始化 (解決 ESM 提升問題)
-│   │   └───style.css       # 介面樣式
-│   ├───package.json        # 前端依賴配置
-│   └───vite.config.js      # Vite 配置
-├───processing-3.5.4\       # 內建 Processing 執行環境 (不進 Git)
-├───GEMINI.md               # 專案開發規範 (Agent 必讀)
-└───README.md               # 專案簡介
+│   │   ├───blocks\ (Blockly 積木定義)
+│   │   ├───generators\ (Java/PDE 程式碼產生器)
+│   │   ├───lang\ (語系檔)
+│   │   ├───modules\ (UI 工具、API 介面、工具箱)
+│   │   ├───main.js (前端進入點)
+│   │   ├───preinit.js (ESM 全局變數初始化)
+│   │   └───style.css (IDE 樣式設定)
+│   ├───public\ (靜態檔案)
+│   ├───index.html (HTML 骨架)
+│   ├───package.json (依賴管理)
+│   └───vite.config.ts (Vite 設定檔)
+└───processing-3.5.4\ (影音引擎執行環境 - 建議手動放入)
+
+---
+*最後更新日期：2026-03-18*

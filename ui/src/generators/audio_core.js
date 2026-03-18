@@ -8,11 +8,14 @@
  */
 
 Blockly.Processing.registerGenerator('sb_minim_init', function(block) {
-  Blockly.Processing.injectAudioCore();
+  if (Blockly.Processing.injectAudioCore) {
+    Blockly.Processing.injectAudioCore();
+  }
   Blockly.Processing.addImport('import ddf.minim.*;');
   Blockly.Processing.addImport('import ddf.minim.ugens.*;');
   
   Blockly.Processing.provideSetup(`
+  if (minim == null) minim = new Minim(this);
   checkMainMixer();
   `, 'sb_audio_init');
   return '';
