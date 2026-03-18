@@ -99,6 +99,41 @@ window.SB_Utils.getRelativeIndex = function(atCode) {
 };
 
 /**
+ * --- Color Utilities ---
+ */
+
+window.SB_Utils.hexToJavaColor = function(hex) {
+    if (!hex) return "color(0)";
+    // 移除 # 號
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `color(${r}, ${g}, ${b})`;
+};
+
+window.SB_Utils.hexToHue = function(hex) {
+    if (!hex) return 0;
+    hex = hex.replace('#', '');
+    if (hex.length === 3) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    const r = parseInt(hex.substring(0, 2), 16) / 255;
+    const g = parseInt(hex.substring(2, 4), 16) / 255;
+    const b = parseInt(hex.substring(4, 6), 16) / 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h;
+    if (max === min) h = 0;
+    else if (max === r) h = (60 * ((g - b) / (max - min)) + 360) % 360;
+    else if (max === g) h = (60 * ((b - r) / (max - min)) + 120);
+    else h = (60 * ((r - g) / (max - min)) + 240);
+    return Math.round(h * 255 / 360); // 縮放至 Processing 的 0-255 HSB 範圍
+};
+
+/**
  * --- Audio Block Shared Helpers ---
  */
 
@@ -297,16 +332,79 @@ window.SB_Utils.MELODIC_SAMPLER_MUTATOR = {
 
 window.SB_Utils.initMinimap = function(workspace) {
     if (window.PositionedMinimap) {
-        const minimap = new window.PositionedMinimap(workspace);
+        const MinimapClass = window.PositionedMinimap;
+        const minimap = new MinimapClass(workspace);
         minimap.init();
         
-        // Fix Minimap Icon using WaveCode style
-        setTimeout(() => {
-            const iconImage = document.querySelector('.blockly-minimap-button image');
-            if (iconImage) {
-                iconImage.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '/icons/public_24dp_FE2F89.png');
+        // Z-Index 同步修復：監聽點擊事件，強制更新 Minimap 圖層順序
+        workspace.addChangeListener((e) => {
+            if (e.type === Blockly.Events.CLICK && e.blockId) {
+                // 延遲執行以確保 Blockly 主畫面已完成重繪
+                setTimeout(() => {
+                    const minimapSvg = document.querySelector('.blockly-minimap svg');
+                    if (!minimapSvg) return;
+                    
+                    // Minimap 通常會複製 Block ID 作為 SVG ID 或 class
+                    // 嘗試尋找對應的 Minimap 元素
+                    // 注意：Blockly Minimap 實作可能有所不同，通常它會鏡像主 Workspace 的結構
+                    
+                    // 方法 A: 透過 ID 尋找 (假設 Minimap 複製了 ID)
+                    let miniBlock = minimapSvg.getElementById(e.blockId);
+                    
+                    // 方法 B: 如果 ID 沒複製，Minimap 可能是一個全域重繪，這種情況下我們需要呼叫 Minimap 的更新方法
+                    // 但大多數 Minimap 插件是增量更新的
+                    
+                    if (miniBlock) {
+                        // SVG Z-Index 駭客：移到父節點的最後面
+                        const parent = miniBlock.parentNode;
+                        if (parent) {
+                            parent.appendChild(miniBlock);
+                        }
+                    } else {
+                        // 如果找不到 ID，嘗試尋找帶有 data-id 的元素
+                        miniBlock = minimapSvg.querySelector(`[data-id="${e.blockId}"]`);
+                        if (miniBlock) {
+                            const parent = miniBlock.parentNode;
+                            if (parent) parent.appendChild(miniBlock);
+                        }
+                    }
+                }, 0);
             }
-        }, 500);
+        });
+
+        const mWrapper = document.querySelector('.blockly-minimap');
+        if (mWrapper && !document.getElementById('minimap-toggle')) {
+            const toggleBtn = document.createElement('div');
+            toggleBtn.id = 'minimap-toggle';
+            toggleBtn.title = '切換 Minimap (Ctrl+M)';
+            
+            const ICON_CLOSE = '/icons/cancel_24dp_FE2F89.png';
+            const ICON_OPEN = '/icons/public_24dp_FE2F89.png';
+            
+            toggleBtn.style.backgroundImage = `url(${ICON_CLOSE})`;
+            toggleBtn.style.backgroundColor = 'transparent';
+            toggleBtn.style.border = 'none';
+            
+            const toggle = () => {
+                const isCollapsed = mWrapper.classList.toggle('collapsed');
+                toggleBtn.classList.toggle('collapsed');
+                toggleBtn.style.backgroundImage = `url(${isCollapsed ? ICON_OPEN : ICON_CLOSE})`;
+                Blockly.svgResize(workspace);
+            };
+
+            toggleBtn.addEventListener('click', toggle);
+            // 修正：掛載到 blocklyDiv，使其跟隨 workspace 佈局
+            const container = document.getElementById('blocklyDiv');
+            if (container) container.appendChild(toggleBtn);
+
+            // 快捷鍵支援
+            window.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+                    e.preventDefault();
+                    toggle();
+                }
+            });
+        }
     }
 };
 

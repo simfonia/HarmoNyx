@@ -4,26 +4,23 @@
  */
 
 /**
- * UI blocks for Processing (ControlP5 library).
+ * UI Control Blocks: ControlP5 wrapper.
  */
 
 Blockly.Blocks['ui_key_event'] = {
   init: function() {
     this.appendDummyInput()
-        .appendField(Blockly.Msg['UI_KEY_EVENT'].split('%1')[0])
-        .appendField(new Blockly.FieldDropdown(() => window.getAvailableKeys(this)), "KEY")
-        .appendField(Blockly.Msg['UI_KEY_EVENT'].split('%1')[1].split('%2')[0])
+        .appendField(Blockly.Msg['UI_KEY_EVENT'].replace('%1', '').replace('%2', ''))
+        .appendField(new Blockly.FieldDropdown(() => window.SB_Utils.getAvailableKeys(this)), "KEY")
         .appendField(new Blockly.FieldDropdown([
           [Blockly.Msg['UI_KEY_PRESSED'], "PRESSED"],
           [Blockly.Msg['UI_KEY_RELEASED'], "RELEASED"]
-        ]), "MODE")
-        .appendField(Blockly.Msg['UI_KEY_EVENT'].split('%2')[1] || "")
-        .appendField(new Blockly.FieldLabel(""), "CONFLICT_LABEL");
+        ]), "TYPE");
     this.appendStatementInput("DO")
-        .setCheck(null)
-        .appendField(Blockly.Msg['BKY_CONTROLS_DO']);
-    this.setColour("#2c3e50");
+        .setCheck(null);
+    this.setColour(Blockly.Msg['PC_KEY_HUE'] || '#2c3e50');
     this.setTooltip(Blockly.Msg['UI_KEY_EVENT_TOOLTIP']);
+    this.setHelpUrl('');
   }
 };
 
@@ -33,50 +30,53 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "%{BKY_UI_INIT}",
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "#FFB300",
+    "colour": "%{BKY_UI_HUE}",
     "tooltip": "%{BKY_UI_INIT_TOOLTIP}"
   },
   {
     "type": "ui_add_slider",
     "message0": "%{BKY_UI_ADD_SLIDER}",
     "args0": [
-      { "type": "field_input", "name": "VAR", "text": "masterGain" },
-      { "type": "field_number", "name": "X", "value": 820 },
-      { "type": "field_number", "name": "Y", "value": 130 },
-      { "type": "field_number", "name": "W", "value": 150 },
-      { "type": "field_number", "name": "H", "value": 20 },
+      { "type": "field_input", "name": "NAME", "text": "slider1" },
+      { "type": "input_value", "name": "X", "check": "Number" },
+      { "type": "input_value", "name": "Y", "check": "Number" },
+      { "type": "input_value", "name": "W", "check": "Number" },
+      { "type": "input_value", "name": "H", "check": "Number" },
       { "type": "input_dummy" },
-      { "type": "field_number", "name": "MIN", "value": -40 },
-      { "type": "field_number", "name": "MAX", "value": 6 },
-      { "type": "field_number", "name": "VAL", "value": -10 },
-      { "type": "field_input", "name": "LABEL", "text": "GAIN" }
+      { "type": "input_value", "name": "MIN", "check": "Number" },
+      { "type": "input_value", "name": "MAX", "check": "Number" },
+      { "type": "input_value", "name": "DEFAULT", "check": "Number" },
+      { "type": "input_value", "name": "LABEL", "check": "String" }
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "#FFB300"
+    "colour": "%{BKY_UI_HUE}",
+    "tooltip": ""
   },
   {
     "type": "ui_add_toggle",
     "message0": "%{BKY_UI_ADD_TOGGLE}",
     "args0": [
-      { "type": "field_input", "name": "VAR", "text": "isMidiMode" },
-      { "type": "field_number", "name": "X", "value": 820 },
-      { "type": "field_number", "name": "Y", "value": 30 },
-      { "type": "field_checkbox", "name": "STATE", "checked": true },
-      { "type": "field_input", "name": "LABEL", "text": "MODE" }
+      { "type": "field_input", "name": "NAME", "text": "toggle1" },
+      { "type": "input_value", "name": "X", "check": "Number" },
+      { "type": "input_value", "name": "Y", "check": "Number" },
+      { "type": "field_checkbox", "name": "DEFAULT", "checked": false },
+      { "type": "input_value", "name": "LABEL", "check": "String" }
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "#FFB300"
+    "colour": "%{BKY_UI_HUE}",
+    "tooltip": ""
   },
   {
     "type": "ui_set_font_size",
     "message0": "%{BKY_UI_SET_FONT_SIZE}",
     "args0": [
-      { "type": "field_number", "name": "SIZE", "value": 20, "min": 8, "max": 60 }
+      { "type": "input_value", "name": "SIZE", "check": "Number" }
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "#FFB300"
+    "colour": "%{BKY_UI_HUE}",
+    "tooltip": ""
   }
 ]);

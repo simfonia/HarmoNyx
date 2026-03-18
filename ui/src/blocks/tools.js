@@ -20,7 +20,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "#6a8871",
+    "colour": "%{BKY_TOOLS_HUE}",
     "tooltip": "%{BKY_TOOLS_COMMENT_TOOLTIP}"
   }
 ]);

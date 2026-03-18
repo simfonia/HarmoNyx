@@ -54,25 +54,37 @@ Blockly.Processing.init = function(workspace) {
   Blockly.Processing.draws_ = Object.create(null); 
   Blockly.Processing.keyEvents_ = [];
 
-  // Standard Imports
-  Blockly.Processing.addImport("import java.util.*;");
-  Blockly.Processing.addImport("import ddf.minim.*;");
-  Blockly.Processing.addImport("import ddf.minim.ugens.*;");
-
   // Helper functions
-  Blockly.Processing.definitions_['Helper_floatVal'] = 
-    "float floatVal(Object o) {\n" +
-    "  if (o == null) return 0.0f;\n" +
-    "  if (o instanceof Number) return ((Number)o).floatValue();\n" +
-    "  try { return Float.parseFloat(o.toString()); }\n" +
-    "  catch (Exception e) { return 0.0f; }\n" +
-    "}\n" +
-    "int getMidi(Object o) {\n" +
-    "  if (o == null) return -1;\n" +
-    "  if (o instanceof Number) return ((Number)o).intValue();\n" +
-    "  String s = o.toString().trim();\n" +
-    "  try { return (int)Float.parseFloat(s); } catch (Exception e) { return noteToMidi(s); }\n" +
-    "}";
+  Blockly.Processing.definitions_['Helper_Core'] = `
+float floatVal(Object o) {
+  if (o == null) return 0.0f;
+  if (o instanceof Number) return ((Number)o).floatValue();
+  try { return Float.parseFloat(o.toString()); }
+  catch (Exception e) { return 0.0f; }
+}
+
+int getMidi(Object o) {
+  if (o == null) return -1;
+  if (o instanceof Number) return ((Number)o).intValue();
+  String s = o.toString().trim();
+  try { return (int)Float.parseFloat(s); } catch (Exception e) { return noteToMidi(s); }
+}
+
+int noteToMidi(String note) {
+  String n = note.toUpperCase(); if (n.equals("R")) return -1; if (n.equals("X")) return 69;
+  int octave = 4; if (n.length() > 1 && Character.isDigit(n.charAt(n.length()-1))) { 
+    octave = Character.getNumericValue(n.charAt(n.length()-1)); n = n.substring(0, n.length()-1); 
+  }
+  int pc = 0; if (n.startsWith("C")) pc = 0; else if (n.startsWith("D")) pc = 2; else if (n.startsWith("E")) pc = 4; 
+  else if (n.startsWith("F")) pc = 5; else if (n.startsWith("G")) pc = 7; else if (n.startsWith("A")) pc = 9; else if (n.startsWith("B")) pc = 11;
+  if (n.contains("#") || n.contains("S")) pc++; if (n.contains("B") && n.length() > 1 && !n.equals("B")) pc--;
+  return (octave + 1) * 12 + pc;
+}
+
+float mtof(float note) { 
+  return 440.0f * (float)Math.pow(2.0, (double)((note - 69.0f) / 12.0f)); 
+}
+`;
 
   if (!Blockly.Processing.nameDB_) {
     Blockly.Processing.nameDB_ = new Blockly.Names(Blockly.Processing.RESERVED_WORDS_);
@@ -111,48 +123,6 @@ Blockly.Processing.provideDraw = function(code, opt_key) {
  * Finish the code generation.
  */
 Blockly.Processing.finish = function(code) {
-  // --- 0. Pre-process MIDI Event Arrays (Crucial to do this first!) ---
-  const noteOnEvents = (Blockly.Processing.definitions_['midi_events_note_on'] || []).join('\n');
-  const noteOffEvents = (Blockly.Processing.definitions_['midi_events_note_off'] || []).join('\n');
-  const ccEvents = (Blockly.Processing.definitions_['midi_events_cc'] || []).join('\n');
-
-  if (noteOnEvents || noteOffEvents || ccEvents) {
-    let midiFuncs = `
-void noteOn(int channel, int pitch, int velocity) {
-  if (midiBusses.size() == 1) { for (String name : midiBusses.keySet()) { noteOn(channel, pitch, velocity, name); } }
-  else { noteOn(channel, pitch, velocity, "MIDI_1"); }
-}
-void noteOff(int channel, int pitch, int velocity) {
-  if (midiBusses.size() == 1) { for (String name : midiBusses.keySet()) { noteOff(channel, pitch, velocity, name); } }
-  else { noteOff(channel, pitch, velocity, "MIDI_1"); }
-}
-void controllerChange(int channel, int number, int value) {
-  if (midiBusses.size() == 1) { for (String name : midiBusses.keySet()) { controllerChange(channel, number, value, name); } }
-  else { controllerChange(channel, number, value, "MIDI_1"); }
-}
-void noteOn(int channel, int pitch, int velocity, String bus_name) {
-  logToScreen("[" + bus_name + "] Note ON - P: " + pitch + " V: " + velocity, 0);
-  midiKeysHeld.put(pitch, currentInstrument);
-${noteOnEvents}
-}
-void noteOff(int channel, int pitch, int velocity, String bus_name) {
-  logToScreen("[" + bus_name + "] Note OFF - P: " + pitch, 0);
-  String memorizedInst = midiKeysHeld.get(pitch);
-  if (memorizedInst != null) {
-    String backup = currentInstrument; currentInstrument = memorizedInst;
-${noteOffEvents}
-    currentInstrument = backup; midiKeysHeld.remove(pitch);
-  } else { ${noteOffEvents} }
-}
-void controllerChange(int channel, int number, int value, String bus_name) { ${ccEvents} }
-`;
-    Blockly.Processing.definitions_['midi_callbacks'] = midiFuncs;
-  }
-  // Remove non-string arrays so they don't break the string processing below
-  delete Blockly.Processing.definitions_['midi_events_note_on'];
-  delete Blockly.Processing.definitions_['midi_events_note_off'];
-  delete Blockly.Processing.definitions_['midi_events_cc'];
-
   // 1. Process Imports
   const uniqueImports = new Set();
   if (Blockly.Processing.imports_) {
@@ -172,22 +142,8 @@ void controllerChange(int channel, int number, int value, String bus_name) { ${c
   
   // 3. Process Definitions (Placeholders)
   let definitionsStr = Object.values(Blockly.Processing.definitions_ || {})
-    .filter(d => typeof d === 'string') // Double check type
+    .filter(d => typeof d === 'string') 
     .map(d => d.trim()).filter(d => d !== "").join('\n\n');
-
-  // Handle Key Events
-  let pressedEventsCode = "";
-  let releasedEventsCode = "";
-  if (Blockly.Processing.keyEvents_) {
-    Blockly.Processing.keyEvents_.forEach(ev => {
-      let eventCode = `if (k == '${ev.key}') {\n      ${ev.code.replace(/\n/g, '\n      ')}\n    }\n    `;
-      if (ev.mode === 'RELEASED') releasedEventsCode += eventCode;
-      else pressedEventsCode += eventCode;
-    });
-  }
-  definitionsStr = definitionsStr
-    .replace('{{KEY_PRESSED_EVENT_PLACEHOLDER}}', pressedEventsCode)
-    .replace('{{KEY_RELEASED_EVENT_PLACEHOLDER}}', releasedEventsCode);
 
   // 4. Setup Function
   const setupParts = Blockly.Processing.setups_ || {};
@@ -247,44 +203,12 @@ Blockly.Processing.injectAudioCore = function() {
   g['instrumentMap'] = "LinkedHashMap<String, String> instrumentMap = new LinkedHashMap<String, String>();";
   g['instrumentADSR'] = "LinkedHashMap<String, float[]> instrumentADSR = new LinkedHashMap<String, float[]>();";
   g['instrumentVolumes'] = "HashMap<String, Float> instrumentVolumes = new HashMap<String, Float>();";
-  g['chords'] = "HashMap<String, String[]> chords = new HashMap<String, String[]>();";
   g['currentInstrument'] = 'String currentInstrument = "default";';
-  g['lastInstrument'] = 'String lastInstrument = "";';
   g['mainMixer'] = "SBSummer mainMixer;";
   g['masterEffectEnd'] = "UGen masterEffectEnd;";
   g['masterGainUGen'] = "Gain masterGainUGen;";
-  g['harmonicPartials'] = "HashMap<String, float[]> harmonicPartials = new HashMap<String, float[]>();";
-  g['additiveConfigs'] = "HashMap<String, List<SynthComponent>> additiveConfigs = new HashMap<String, List<SynthComponent>>();";
-  g['samplerMap'] = "HashMap<String, Sampler> samplerMap = new HashMap<String, Sampler>();";
-  g['samplerGainMap'] = "HashMap<String, Gain> samplerGainMap = new HashMap<String, Gain>();";
-  g['melodicSamplers'] = "HashMap<String, MelodicSampler> melodicSamplers = new HashMap<String, MelodicSampler>();";
-  g['activeMelodyCount'] = "int activeMelodyCount = 0;";
-  g['melodyLock'] = "final Object melodyLock = new Object();";
-  g['isCountingIn'] = "volatile boolean isCountingIn = false;";
-  g['activeNotes'] = "ConcurrentHashMap<String, ADSR> activeNotes = new ConcurrentHashMap<String, ADSR>();";
-  g['midiKeysHeld'] = "ConcurrentHashMap<Integer, String> midiKeysHeld = new ConcurrentHashMap<Integer, String>();";
-  g['midiBusses'] = "HashMap<String, MidiBus> midiBusses = new HashMap<String, MidiBus>();";
-  g['instrumentMixConfigs'] = "HashMap instrumentMixConfigs = new HashMap();";
-  g['isMasterClipping'] = "volatile boolean isMasterClipping = false;";
-  g['clippingTimer'] = "long clippingTimer = 0;";
-  g['pitchTranspose'] = "int pitchTranspose = 0;";
   
-  g['instrumentMixers'] = "HashMap instrumentMixers = new HashMap();";
-  g['instrumentEffectEnds'] = "HashMap instrumentEffectEnds = new HashMap();";
-  g['instrumentFilters'] = "HashMap instrumentFilters = new HashMap();";
-  g['instrumentDelays'] = "HashMap instrumentDelays = new HashMap();";
-  g['instrumentBitCrushers'] = "HashMap instrumentBitCrushers = new HashMap();";
-  g['instrumentCompressors'] = "HashMap instrumentCompressors = new HashMap();";
-  g['instrumentLimiters'] = "HashMap instrumentLimiters = new HashMap();";
-  g['instrumentWaveshapers'] = "HashMap instrumentWaveshapers = new HashMap();";
-  g['instrumentReverbs'] = "HashMap instrumentReverbs = new HashMap();";
-  g['instrumentFlangers'] = "HashMap instrumentFlangers = new HashMap();";
-  g['instrumentAutoFilters'] = "HashMap instrumentAutoFilters = new HashMap();";
-  g['instrumentAutoFilterLFOs'] = "HashMap instrumentAutoFilterLFOs = new HashMap();";
-  g['instrumentPitchMods'] = "HashMap instrumentPitchMods = new HashMap();";
-  g['instrumentPitchModLFOs'] = "HashMap instrumentPitchModLFOs = new HashMap();";
-  g['instrumentPans'] = "HashMap instrumentPans = new HashMap();";
-
+  // 基礎音訊變數
   g['bpm'] = "float bpm = 120.0;";
   g['masterGain'] = "float masterGain = -5.0;";
   g['defAdsrA'] = "float defAdsrA = 0.01;";

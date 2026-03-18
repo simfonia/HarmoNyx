@@ -14,7 +14,7 @@ Blockly.defineBlocksWithJsonArray([
     "message0": "%{BKY_SB_HARMONIC_PARTIAL_CONTAINER}",
     "nextStatement": null,
     "enableContextMenu": false,
-    "colour": "#E74C3C"
+    "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
     "type": "sb_harmonic_partial_item",
@@ -22,14 +22,14 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "enableContextMenu": false,
-    "colour": "#E74C3C"
+    "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
     "type": "sb_additive_synth_container",
     "message0": "%{BKY_SB_ADDITIVE_SYNTH_CONTAINER}",
     "nextStatement": null,
     "enableContextMenu": false,
-    "colour": "#E74C3C"
+    "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
   {
     "type": "sb_additive_synth_item",
@@ -37,7 +37,7 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "enableContextMenu": false,
-    "colour": "#E74C3C"
+    "colour": "%{BKY_SOUND_SOURCES_HUE}"
   },
 
   // Standard Audio Initialization

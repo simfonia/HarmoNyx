@@ -57,8 +57,72 @@ UIUtils.injectNaNShield();
 const invoke = HarmoNyxAPI.getInvoke();
 
 // --- 1. 註冊 Blockly 插件 ---
-if (window.FieldMultilineInput) Blockly.fieldRegistry.register('field_multilinetext', window.FieldMultilineInput);
-if (window.FieldColour) Blockly.fieldRegistry.register('field_colour', window.FieldColour);
+if (window.FieldMultilineInput) {
+    Blockly.fieldRegistry.register('field_multilinetext', window.FieldMultilineInput);
+    Blockly.fieldRegistry.register('field_multilineinput', window.FieldMultilineInput);
+}
+
+// 自定義顏色選擇欄位 (Polyfill)，解決不相容問題並提供原生選色體驗
+class CustomFieldColour extends Blockly.FieldTextInput {
+    constructor(value) { 
+        super(value || '#ffffff'); 
+    }
+    static fromJson(options) { return new CustomFieldColour(options.colour || options.value); }
+    
+    doClassValidation_(newValue) {
+        if (typeof newValue !== 'string') return null;
+        let cleaned = newValue.replace('#', '');
+        if (cleaned.length === 3) cleaned = cleaned[0] + cleaned[0] + cleaned[1] + cleaned[1] + cleaned[2] + cleaned[2];
+        if (cleaned.match(/^[0-9a-fA-F]{6}$/)) return '#' + cleaned.toLowerCase();
+        return null;
+    }
+
+    initView() {
+        super.initView();
+        // 初始化時就強制設定樣式
+        this.updateColorView();
+    }
+
+    // 當積木重新渲染時 (例如變更輸入)，Blockly 會呼叫 render_
+    render_() {
+        super.render_();
+        this.updateColorView();
+    }
+
+    updateColorView() {
+        const color = this.getValue();
+        if (!color || !this.borderRect_) return;
+
+        // 強力覆寫樣式
+        this.borderRect_.style.cssText = `fill: ${color} !important; fill-opacity: 1 !important; stroke: #fff !important; stroke-width: 1px;`;
+        this.borderRect_.setAttribute('fill', color);
+        this.borderRect_.setAttribute('fill-opacity', '1');
+
+        // 處理文字對比
+        if (this.textElement_) {
+            const r = parseInt(color.substring(1, 3), 16);
+            const g = parseInt(color.substring(3, 5), 16);
+            const b = parseInt(color.substring(5, 7), 16);
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            const textColor = brightness > 128 ? '#000000' : '#ffffff';
+            
+            this.textElement_.style.cssText = `fill: ${textColor} !important; font-weight: bold;`;
+            this.textElement_.setAttribute('fill', textColor);
+        }
+    }
+
+    showEditor_() {
+        const input = document.createElement('input');
+        input.type = 'color';
+        input.value = this.getValue();
+        input.oninput = (e) => {
+            this.setValue(e.target.value);
+            this.updateColorView(); // 編輯時即時更新
+        };
+        input.click();
+    }
+}
+Blockly.fieldRegistry.register('field_colour', CustomFieldColour);
 
 const ScrollOptionsPlugin = window.ScrollOptions || (window.ScrollOptionsPlugin && window.ScrollOptionsPlugin.ScrollOptions);
 const scrollDragger = window.ScrollBlockDragger || (ScrollOptionsPlugin ? ScrollOptionsPlugin.ScrollBlockDragger : undefined);
@@ -84,12 +148,104 @@ const workspace = Blockly.inject(blocklyDiv, {
     grid: { spacing: 25, length: 3, colour: '#333', snap: true },
     zoom: { controls: true, wheel: true, startScale: 1.0 },
     move: { scrollbars: true, drag: true, wheel: true },
+    media: 'media/',
     theme: harmoNyxTheme,
     plugins: { 'blockDragger': scrollDragger, 'metricsManager': scrollMetrics },
-    renderer: 'zelos'
+    renderer: 'geras'
 });
 
 // --- 3. 核心功能實作 ---
+
+/**
+ * 初始化介面語言與 Tooltip
+ */
+function initI18n() {
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.getAttribute('data-i18n-title');
+        if (Blockly.Msg[key]) {
+            el.title = Blockly.Msg[key];
+        }
+    });
+    // 更新選單內的文字
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (Blockly.Msg[key]) {
+            el.textContent = Blockly.Msg[key];
+        }
+    });
+}
+
+// --- 4. 系統設定選單 (參考 WaveCode) ---
+let currentLang = 'zh-hant';
+const settingsBtn = document.getElementById('settings-btn');
+const settingsMenu = document.createElement('div');
+settingsMenu.className = 'dropdown-menu';
+settingsMenu.id = 'settings-menu';
+settingsMenu.innerHTML = `
+    <div class="dropdown-item" id="restart-audio-item">
+        <img src="/icons/rocket_launch_24dp_FE2F89.png">
+        <span data-i18n="HARMONYX_RESTART_AUDIO">重啟音訊</span>
+    </div>
+    <div class="dropdown-item has-submenu">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="/icons/language_24dp_FE2F89.png">
+            <span data-i18n="HARMONYX_LANG_SETTING">語言設定</span>
+        </div>
+        <span>▸</span>
+        <div class="submenu">
+            <div class="dropdown-item lang-item" data-lang="zh-hant" style="justify-content: flex-start;">
+                <span class="lang-check" style="width: 24px;"></span>
+                <span>正體中文</span>
+            </div>
+            <div class="dropdown-item lang-item" data-lang="en" style="justify-content: flex-start;">
+                <span class="lang-check" style="width: 24px;"></span>
+                <span>English</span>
+            </div>
+        </div>
+    </div>
+`;
+document.body.appendChild(settingsMenu);
+
+function updateLangCheck(lang) {
+    document.querySelectorAll('.lang-check').forEach(el => { el.innerHTML = ''; });
+    const selectedEl = document.querySelector(`.lang-item[data-lang="${lang}"] .lang-check`);
+    if (selectedEl) {
+        selectedEl.innerHTML = `<img src="/icons/done_24dp_FE2F89.png" style="width: 16px; height: 16px;">`;
+    }
+}
+
+settingsBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const rect = settingsBtn.getBoundingClientRect();
+    settingsMenu.style.top = `${rect.bottom + 5}px`;
+    settingsMenu.style.left = `${rect.left - 120}px`;
+    settingsMenu.classList.toggle('show');
+});
+
+document.addEventListener('click', () => {
+    settingsMenu.classList.remove('show');
+});
+
+// 語系切換監聽
+document.querySelectorAll('.lang-item').forEach(item => {
+    item.addEventListener('click', async (e) => {
+        const lang = item.getAttribute('data-lang');
+        if (lang !== currentLang) {
+            console.log(`Switching language to: ${lang}`);
+            currentLang = lang;
+            updateLangCheck(lang);
+            // 此處未來可實作動態換語言，目前先提示需重啟
+            alert("語系切換功能開發中，目前預設為正體中文。");
+        }
+    });
+});
+
+document.getElementById('restart-audio-item').addEventListener('click', () => {
+    alert("正在重啟音訊引擎...");
+    // 未來可呼叫 Rust 重置音訊狀態
+});
+
+updateLangCheck(currentLang);
 
 let isDirty = false;
 let currentFilename = '';
@@ -140,20 +296,17 @@ async function checkUnsavedChanges() {
 
 document.getElementById('run-btn').addEventListener('click', async () => {
     const runBtn = document.getElementById('run-btn');
-    if (runBtn.classList.contains('is-running')) {
-        return;
-    }
-
+    // 注意：不阻擋 is-running，因為後端會自動替換進程
     try {
         runBtn.classList.add('is-running');
-        runBtn.title = '正在執行...';
+        runBtn.title = Blockly.Msg['HARMONYX_RUN'] + '...';
 
         // 1. 產生 Processing (Java) 代碼
         Blockly.Processing.init(workspace);
         const code = Blockly.Processing.workspaceToCode(workspace);
         console.log("Generated Code:\n", code);
 
-        // 2. 呼叫 Rust 後端執行
+        // 2. 呼叫 Rust 後端執行 (異步)
         const result = await invoke('run_processing', { code });
         console.log("Execution Result:", result);
 
@@ -162,12 +315,17 @@ document.getElementById('run-btn').addEventListener('click', async () => {
         alert("執行失敗: " + error);
     } finally {
         runBtn.classList.remove('is-running');
-        runBtn.title = '執行 (Run)';
+        runBtn.title = Blockly.Msg['HARMONYX_RUN'];
     }
 });
 
 document.getElementById('stop-btn').addEventListener('click', async () => {
-    console.log("Stopping... (Process termination to be implemented)");
+    try {
+        const result = await invoke('stop_processing');
+        console.log("Stop Result:", result);
+    } catch (error) {
+        console.error("停止失敗:", error);
+    }
 });
 
 document.getElementById('new-btn').addEventListener('click', async () => {
@@ -206,6 +364,7 @@ resizeObserver.observe(blocklyDiv);
 setTimeout(() => { 
     Blockly.svgResize(workspace); 
     UIUtils.initMinimap(workspace); 
+    initI18n(); // 加入此行
     setTimeout(createDefaultBlocks, 200);
 }, 300);
 

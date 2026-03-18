@@ -1,24 +1,19 @@
-# WaveCode IDE
+# HarmoNyx IDE
 
-WaveCode 是一個專為高中音訊編程教育設計的獨立 IDE。它結合了 Blockly 的視覺化開發體驗與 Rust 原生 DSP 引擎的高效能，旨在提供低延遲、安全且直觀的音樂編程環境。
+HarmoNyx 是一個獨立的創意編程 IDE，結合了 **Blockly** 的視覺化邏輯與 **Processing (Java) + Minim** 的影音渲染引擎。本專案由 **WaveCode** 的穩定架構移植而來，繼承了其優異的 UI 佈局與 Minimap 實作。
 
-## 🚀 核心技術
-- **後端引擎**：Rust + [fundsp](https://github.com/SamiPerttu/fundsp) (Functional DSP)
-- **應用框架**：Tauri v2
-- **視覺編程**：Google Blockly
-- **音訊驅動**：cpal (Cross-Platform Audio Library)
+## 技術架構
+- **Frontend**: Vite + Vanilla JS + Blockly。
+- **Desktop**: Tauri 2.0 (Rust)。
+- **Core Engine**: Processing (Java) 3.5.4。
+- **Communication**: 前端透過 Tauri `invoke` 呼叫 Rust 後端，再由 Rust 執行 `processing-java` 命令並管理進程。
 
-## ✨ 主要特色
-- **Pure Rust DSP**：100% 原生 Rust 實作，確保系統穩定性與高效能。
-- **腦與身體分離架構**：前端負責積木邏輯與版本管理，後端負責實時音訊渲染。
-- **NaN 防護盾**：內建針對 Blockly 座標系統的防護，確保 IDE 介面流暢不噴錯。
-- **腳本版本控制**：支援非同步演奏指令的即時中斷與覆蓋，杜絕聲音重疊衝突。
+## 快速開始
+1.  進入 `ui/` 目錄：`cd ui`
+2.  安裝套件：`npm install`
+3.  啟動開發環境：`npm run tauri dev` (在根目錄執行)
 
-## 🛠️ 開發環境
-1. 安裝 Rust (Stable)
-2. 安裝 Node.js
-3. 執行 `npm install` (於 `ui/` 資料夾)
-4. 執行 `npm run tauri dev` (於根目錄)
-
----
-*WaveCode - 讓音樂代碼化，讓創作視覺化。*
+## 核心功能
+- **積木即程式碼**: 拖曳積木產生 PDE 程式碼。
+- **即時預覽**: 點擊 Run 立即彈出 Processing 視窗執行。
+- **現代化 UI**: 包含 Minimap 導航、深色主題與 zelos 渲染器。

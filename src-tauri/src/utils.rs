@@ -40,19 +40,29 @@ pub fn get_processing_cmd() -> String {
         "processing-java"
     };
 
-    // 1. 優先檢查 HarmoNyx 本地目錄 (專案根目錄下)
-    // 注意: 這裡假設啟動路徑是專案根目錄，之後打包生產環境時需要再調整
-    let local_path = Path::new("processing-3.5.4").join(cmd_name);
-    if local_path.exists() {
-        return local_path.to_str().unwrap().to_string();
+    // 1. 檢查目前目錄
+    let p1 = Path::new(cmd_name);
+    if p1.exists() { return p1.to_str().unwrap().to_string(); }
+
+    // 2. 檢查專案根目錄下的 processing-3.5.4 (往上找兩層，適應 src-tauri 開發環境)
+    let search_paths = [
+        Path::new("processing-3.5.4").join(cmd_name),
+        Path::new("..").join("processing-3.5.4").join(cmd_name),
+        Path::new("..").join("..").join("processing-3.5.4").join(cmd_name),
+    ];
+
+    for path in &search_paths {
+        if path.exists() {
+            return fs::canonicalize(path).unwrap().to_str().unwrap().replace("\\\\?\\", "").to_string();
+        }
     }
 
-    // 2. 檢查系統 PATH
+    // 3. 檢查系統 PATH
     if let Ok(_path) = which::which(cmd_name) {
         return cmd_name.to_string();
     }
 
-    // 3. 針對此環境的硬編碼 Fallback (SynthBlocklyStage 遷移路徑)
+    // 4. 針對此環境的硬編碼 Fallback
     #[cfg(windows)]
     {
         let fallback = Path::new("C:/Workspace/SynthBlocklyStage/processing-3.5.4/processing-java.exe");
@@ -61,6 +71,5 @@ pub fn get_processing_cmd() -> String {
         }
     }
 
-    // 如果都找不到，回傳預設名稱
     cmd_name.to_string()
 }

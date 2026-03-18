@@ -4,111 +4,96 @@
  */
 
 /**
- * MIDI blocks for Processing (MidiBus library).
+ * MIDI Communication Blocks.
  */
 
 Blockly.defineBlocksWithJsonArray([
   {
-    "type": "midi_init",
-    "message0": "%{BKY_MIDI_INIT}",
-    "args0": [
-      { "type": "field_input", "name": "NAME", "text": "MIDI_1" },
-      { "type": "field_input", "name": "INPUT", "text": "0" },
-      { "type": "field_input", "name": "OUTPUT", "text": "0" }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": "#5B67E7",
-    "tooltip": "%{BKY_MIDI_INIT_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html")
-  },
-  {
     "type": "midi_on_note",
     "message0": "%{BKY_MIDI_ON_NOTE}",
     "args0": [
-      { "type": "field_input", "name": "BUS_NAME", "text": "MIDI_1" },
       { "type": "input_dummy" },
+      { "type": "input_statement", "name": "DO" },
       { "type": "field_variable", "name": "CHANNEL", "variable": "channel" },
       { "type": "field_variable", "name": "PITCH", "variable": "pitch" },
       { "type": "field_variable", "name": "VELOCITY", "variable": "velocity" },
       { "type": "input_dummy" },
-      { "type": "input_statement", "name": "DO" }
+      { "type": "input_dummy" }
     ],
-    "colour": "#5B67E7",
-    "tooltip": "%{BKY_MIDI_ON_NOTE_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html"),
-    "hat": true
+    "colour": "%{BKY_MIDI_HUE}",
+    "tooltip": "%{BKY_MIDI_ON_NOTE_TOOLTIP}"
   },
   {
     "type": "midi_off_note",
     "message0": "%{BKY_MIDI_OFF_NOTE}",
     "args0": [
-      { "type": "field_input", "name": "BUS_NAME", "text": "MIDI_1" },
       { "type": "input_dummy" },
+      { "type": "input_statement", "name": "DO" },
       { "type": "field_variable", "name": "CHANNEL", "variable": "channel" },
       { "type": "field_variable", "name": "PITCH", "variable": "pitch" },
       { "type": "field_variable", "name": "VELOCITY", "variable": "velocity" },
       { "type": "input_dummy" },
-      { "type": "input_statement", "name": "DO" }
+      { "type": "input_dummy" }
     ],
-    "colour": "#5B67E7",
-    "tooltip": "%{BKY_MIDI_OFF_NOTE_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html"),
-    "hat": true
+    "colour": "%{BKY_MIDI_HUE}",
+    "tooltip": "%{BKY_MIDI_OFF_NOTE_TOOLTIP}"
   },
   {
     "type": "midi_on_controller_change",
     "message0": "%{BKY_MIDI_ON_CONTROLLER_CHANGE}",
     "args0": [
-      { "type": "field_input", "name": "BUS_NAME", "text": "MIDI_1" },
       { "type": "input_dummy" },
+      { "type": "input_statement", "name": "DO" },
       { "type": "field_variable", "name": "CHANNEL", "variable": "channel" },
       { "type": "field_variable", "name": "NUMBER", "variable": "number" },
       { "type": "field_variable", "name": "VALUE", "variable": "value" },
       { "type": "input_dummy" },
-      { "type": "input_statement", "name": "DO" }
+      { "type": "input_dummy" }
     ],
-    "colour": "#5B67E7",
-    "tooltip": "%{BKY_MIDI_ON_CONTROLLER_CHANGE_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html"),
-    "hat": true
+    "colour": "%{BKY_MIDI_HUE}",
+    "tooltip": "%{BKY_MIDI_ON_CONTROLLER_CHANGE_TOOLTIP}"
+  },
+  {
+    "type": "midi_init",
+    "message0": "%{BKY_MIDI_INIT}",
+    "args0": [
+      { "type": "input_dummy" },
+      { "type": "field_number", "name": "INPUT", "value": -1 },
+      { "type": "field_number", "name": "OUTPUT", "value": -1 }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "%{BKY_MIDI_HUE}",
+    "tooltip": "%{BKY_MIDI_INIT_TOOLTIP}"
   },
   {
     "type": "midi_send_note",
     "message0": "%{BKY_MIDI_SEND_NOTE}",
     "args0": [
-      { "type": "field_input", "name": "BUS_NAME", "text": "MIDI_1" },
+      { "type": "field_dropdown", "name": "TYPE", "options": [["ON", "noteOn"], ["OFF", "noteOff"]] },
       { "type": "input_dummy" },
-      { "type": "field_dropdown", "name": "TYPE", "options": [
-        ["%{BKY_MIDI_TYPE_ON}", "ON"],
-        ["%{BKY_MIDI_TYPE_OFF}", "OFF"]
-      ]},
       { "type": "input_value", "name": "CHANNEL", "check": "Number" },
       { "type": "input_value", "name": "PITCH", "check": "Number" },
       { "type": "input_value", "name": "VELOCITY", "check": "Number" }
     ],
-    "inputsInline": true,
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "#5B67E7",
-    "tooltip": "%{BKY_MIDI_SEND_NOTE_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html")
+    "colour": "%{BKY_MIDI_HUE}",
+    "tooltip": "%{BKY_MIDI_SEND_NOTE_TOOLTIP}"
   },
   {
     "type": "midi_send_cc",
     "message0": "%{BKY_MIDI_SEND_CC}",
     "args0": [
-      { "type": "field_input", "name": "BUS_NAME", "text": "MIDI_1" },
+      { "type": "input_dummy" },
       { "type": "input_value", "name": "CHANNEL", "check": "Number" },
       { "type": "input_value", "name": "NUMBER", "check": "Number" },
       { "type": "input_value", "name": "VALUE", "check": "Number" }
     ],
-    "inputsInline": true,
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "#5B67E7",
-    "tooltip": "%{BKY_MIDI_SEND_CC_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html")
+    "colour": "%{BKY_MIDI_HUE}",
+    "tooltip": "%{BKY_MIDI_SEND_CC_TOOLTIP}"
   },
   {
     "type": "midi_lp_xy_to_note",
@@ -118,9 +103,7 @@ Blockly.defineBlocksWithJsonArray([
       { "type": "input_value", "name": "Y", "check": "Number" }
     ],
     "output": "Number",
-    "inputsInline": true,
-    "colour": "#5B67E7",
-    "tooltip": "%{BKY_MIDI_LP_XY_TO_NOTE_TOOLTIP}",
-    "helpUrl": "launchpad"
+    "colour": "%{BKY_MIDI_HUE}",
+    "tooltip": "%{BKY_MIDI_LP_XY_TO_NOTE_TOOLTIP}"
   }
 ]);

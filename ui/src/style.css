@@ -285,26 +285,27 @@ h1 {
     right: 10px;
     width: 28px;
     height: 28px;
-    background: #E67E22; /* Performance Orange */
-    color: white;
+    background-color: transparent;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
     z-index: 101;
-    font-size: 14px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s, background-color 0.2s;
+    transition: transform 0.2s, opacity 0.2s;
     user-select: none;
 }
 
 #minimap-toggle:hover {
-    background-color: #D35400;
+    opacity: 0.8;
+    transform: scale(1.1);
 }
 
 #minimap-toggle.collapsed {
-    background-color: #7F8C8D;
+    /* 折疊時的樣式 */
 }
 
 /* Ensure Minimap is below Tooltips but above Workspace */

@@ -1,40 +1,13 @@
-# WaveCode 任務清單 (Todo List)
+# HarmoNyx 任務清單 (TODO)
 
-## 核心願景
-打造一個獨立、低延遲、100% Rust 原生、適合高中教育的音訊編程 IDE。
+## [進行中] 核心功能開發
+- [x] **進程管理**: 實作 `stop_processing`，支援 Windows 進程樹強制終止。
+- [x] **積木修復**: 解決 `field-colour` 不相容、重複定義與渲染器尺寸問題。
+- [x] **介面優化**: 實作設定選單、Tooltip 顯示、i18n 命名空間遷移。
+- [ ] **資源掛載**: 自動將 `samples/` 連結至 Sketch 的 `data/` 資料夾 (Junctions)。
+- [ ] **專案 IO**: 實作 `save_project` 與 `load_project` 指令。
 
----
-
-## [進行中]
-- [ ] **階段二：功能模組擴充**
-    - [x] 支援多種波形切換：Sine, Saw, Square, Triangle。
-    - [x] **帽子積木**：實作「定義樂器」邏輯，對齊 Processing 創作風格。
-    - [x] **實作高品質取樣器 (Sampler)**：
-        - [x] 支援 WAV / MP3 (puremp3)。
-        - [x] 實作多取樣 (Multi-Sampling) 映射。
-        - [x] 實作線性插值變速 (VariableSpeedPlayer)。
-    - [ ] 加入空間效果器：Delay, Reverb。
-    - [x] 加入動態效果器：Soft Limiter / Clip (防止爆音)。
-- [ ] **階段三：視覺化與 UX**
-    - [x] 實作 60FPS 即時示波器 (Oscilloscope)。
-    - [x] 實作 ADSR 曲線積木預覽與動態光點。
-    - [x] 實作整合式系統設定選單。
-    - [ ] 實作 FFT 頻譜分析儀。
-- [ ] **核心穩定化 (Bug Bash)**
-    - [x] 解決睡眠喚醒後的音訊時鐘同步雜訊 (`restart_audio`)。
-    - [x] 解決無 ADSR 樂器無法停止的問題（物理閘門機制）。
-    - [ ] 徹底根除正弦波切換時的細微雜訊（嘗試相位平滑或 crossfade）。
-
----
-
-## [已完成]
-- [x] **M-1. 引擎架構轉型 (Pure Rust)**
-- [x] **M-2. 前端模組化重整**
-- [x] **M-3. 核心功能穩定化**
-- [x] **M-4. 視覺化系統奠基 (2026-03-10)**
-- [x] **M-5. 取樣器革命與效能優化 (2026-03-14)**
-    - [x] 實作並行音色載入 (Rayon)。
-    - [x] 實作 PC 鍵盤對齊鋼琴佈局。
-
----
-*最後更新：2026-03-14*
+## [待辦事項] - 功能完善
+- [ ] **範例遷移**: 移入 SynthBlockly Stage 的經典範例。
+- [ ] **日誌整合**: 讓 Processing 的 stdout/stderr 輸出顯示在 IDE 的 Log 區塊中。
+- [ ] **主題適配**: 微調 Blockly Theme 以更完美契合深色介面。
