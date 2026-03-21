@@ -1,3 +1,12 @@
+﻿## Processing 3.5.4 指令限制
+\processing-java.exe\ 不支援 \--settings-path\ 參數。若要自定義 settings，需透過變更使用者目錄或環境變數，但考慮到穩定性，目前已棄用此方案。
+
+## 佔位符替換 (Regex)
+產生器中的 \definitions_\ 內容可能被多次注入，使用 \.replace('string', ...)\ 僅會替換第一個匹配項。現已改用 \.replace(/regex/g, ...)\ 確保 PDE 中不殘留任何 \{{...}}\。
+
+## Java 重複定義錯誤
+\Blockly.Processing.definitions_\ 中的 Key 必須唯一。若 \_core.js\ 與 \isual_core.js\ 同時定義 \Helpers\，後者會覆寫前者。目前已將核心工具與視覺工具的 Key 分離，並移除 \java_libs.js\ 中重複的基礎函式。
+
 # HarmoNyx 技術細節 (Details)
 
 ## Blockly 顏色欄位修復 (CustomFieldColour)
@@ -36,8 +45,16 @@ Minimap 預設不會監聽單純的點擊事件。我們在 `ui_utils.js` 的 `i
 - 程式碼會寫入 `app_data_dir/temp_sketch/HarmoNyxSketch/HarmoNyxSketch.pde`。
 - 呼叫 `processing-java --sketch=... --run`。
 
-## Windows Junction (無權限資源掛載)
-為了讓 Processing (Minim) 能夠讀取 `resources/samples` 中的音訊檔案而不需複製檔案，我們在 `utils.rs` 實作了自動掛載：
-1.  **問題**: `symlink_dir` 在 Windows 上預設需要管理員權限。
-2.  **解決**: 使用 `cmd /C mklink /J` 建立 **Junction**。這在一般使用者權限下即可執行，且對 Processing 透明。
-3.  **路徑**: 將 `HarmoNyx/resources/samples` 連結到 Sketch 目錄下的 `data/`。Processing 的 `data/` 是 Minim 搜尋資產的首選路徑。
+## 日誌串流架構 (Log Streaming)
+- **Rust Backend**: 使用 `Command::spawn()` 啟動 Processing 進程，並透過 `Stdio::piped()` 攔截 stdout 與 stderr。
+- **異步監聽**: 開啟獨立的 Rust 執行緒 (`std::thread::spawn`) 持續讀取管線輸出，並透過 `app_handle.emit("processing-log", line)` 將每一行日誌即時推送到前端。
+- **前端顯示**: `main.js` 監聽 Tauri 事件，並將日誌以彩色格式 (`%c`) 輸出至瀏覽器 Console，方便開發者除錯。
+
+## UI/UX 優化細節
+- **暗色主題對比度**: 
+    - 針對 `Shadow Block` (影子積木) 強制設定文字顏色為 `#1a1a1a` (深灰)，解決亮背景導致白字無法辨識的問題。
+    - 針對所有 `EditableText` (包含多行輸入) 實作「白底深色字」樣式。
+- **摺疊式選單 (Accordion)**:
+    - 為了同時支援垂直捲動與子選單顯示，棄用了側邊彈出 (Nested Hover) 樣式，改為內嵌摺疊。
+    - CSS 結構：子選單 `.submenu` 與父項目 `.has-submenu` 為兄弟元素 (Sibling)，透過 `+` 選擇器控制顯示。
+

@@ -402,15 +402,7 @@ window.SB_JavaLibs.GENERAL_HELPERS = `
   }
 
   class SynthComponent { String waveType; float ratio; float amp; SynthComponent(String w, float r, float a) { waveType = w; ratio = r; amp = a; } }
-  float mtof(float note) { return 440.0f * (float)Math.pow(2.0, (double)((note + (float)pitchTranspose - 69.0f) / 12.0f)); }
-  int noteToMidi(String note) {
-    String n = note.toUpperCase(); if (n.equals("R")) return -1; if (n.equals("X")) return 69;
-    int octave = 4; if (n.length() > 1 && Character.isDigit(n.charAt(n.length()-1))) { octave = Character.getNumericValue(n.charAt(n.length()-1)); n = n.substring(0, n.length()-1); }
-    int pc = 0; if (n.startsWith("C")) pc = 0; else if (n.startsWith("D")) pc = 2; else if (n.startsWith("E")) pc = 4; else if (n.startsWith("F")) pc = 5;
-    else if (n.startsWith("G")) pc = 7; else if (n.startsWith("A")) pc = 9; else if (n.startsWith("B")) pc = 11;
-    if (n.contains("#") || n.contains("S")) pc++; if (n.contains("B") && n.length() > 1 && !n.equals("B")) pc--;
-    return (octave + 1) * 12 + pc;
-  }
+  
   Wavetable getWaveform(String type) {
     if (type.equals("SINE")) return Waves.SINE; if (type.equals("SQUARE")) return Waves.SQUARE; if (type.equals("SAW")) return Waves.SAW; return Waves.TRIANGLE;
   }

@@ -73,7 +73,6 @@ Blockly.Processing.registerGenerator('visual_stage_setup', function (block) {
   g['myBus'] = "MidiBus myBus;";
   g['serialBaud'] = "int serialBaud = 115200;";
   g['serialPortVar'] = "Serial myPort;";
-  // 使用 Java 內建 ConcurrentHashMap 以確保多執行緒安全 (與 #stage 一致)
   g['pcKeysHeld'] = "java.util.concurrent.ConcurrentHashMap<Integer, String> pcKeysHeld = new java.util.concurrent.ConcurrentHashMap<Integer, String>();";
 
   g['stageBgColor'] = "int stageBgColor;";
@@ -99,8 +98,8 @@ Blockly.Processing.registerGenerator('visual_stage_setup', function (block) {
   g['adsrTimer'] = "int adsrTimer = 0;";
   g['adsrState'] = "int adsrState = 0;";
 
-  // 注入通用輔助函式 (包含 SynthComponent 類別)
-  Blockly.Processing.definitions_['Helpers'] = window.SB_JavaLibs.GENERAL_HELPERS;
+  // Use Centralized General Helpers from JavaLibs
+  Blockly.Processing.definitions_['Helpers_Visual'] = window.SB_JavaLibs.GENERAL_HELPERS;
 
   var panelH = 200;
   var logW = 400;

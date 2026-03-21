@@ -1,3 +1,15 @@
+﻿## 2026-03-19 (產生器強化與環境回歸)
+- **環境隔離實驗**: 
+    - 嘗試透過 \--settings-path\ 實現可攜式模式，但因 Processing 3.5.4 指令限制與 BOM 編碼衝突失敗。
+    - **最終決策**: 回歸與 #stage 一致的模式，由使用者自行安裝 Processing 環境。已清理所有專案內建庫。
+- **產生器深度修復**:
+    - **Logic/Lists**: 解決了 Java 強型別問題，確保 \String.valueOf\ 與 \ArrayList\ 引用正確。
+    - **Placeholder**: 修正了 \{{KEY_...}}\ 佔位符未替換導致的編譯錯誤。
+    - **衝突消除**: 移除了 \_core.js\ 與 \java_libs.js\ 之間重複的 \mtof\ 與 \
+oteToMidi\ 定義。
+- **UI 修復**: 成功修復了 Toolbar Tooltip 消失的問題，補齊了 \HARMONYX_\ 命名空間的翻譯。
+- **路徑穩定性**: 將臨時 Sketch 目錄遷回 AppData 以確保多平台相容性，並強化了 Rust 端對 UNC 路徑的清理。
+
 # HarmoNyx 任務交接 (Handover)
 
 ## 2026-03-18 (重大功能推進)
@@ -14,18 +26,20 @@
     - 渲染器改回 `geras` 以獲得更緊湊的佈局。
     - 新增設定選單 (Settings Menu)。
 
-## 2026-03-18 (資源掛載與 IO 強化)
-- **資源掛載**: 
-    - 實作了跨平台的目錄連結邏輯 (`utils.rs`)。
-    - 在 Windows 上使用 Junction (`mklink /J`) 建立 `resources/samples` 到 Sketch `data/` 的連結，確保 Processing 可以讀取音訊資源而不需管理員權限。
-- **專案 IO**: 
-    - 完成 `save_project` 與 `load_project` 指令，支援 `.nyx` 格式的 XML 存取。
-- **資產遷移**: 
-    - 已將 SynthBlockly Stage (#stage) 的 `drum` 音訊樣本移入專案。
+## 2026-03-18 (全面遷移與 UI 強化)
+- **核心遷移 (Migration)**: 
+    - 已從 SynthBlockly Stage (#stage) 完整同步所有積木定義 (Blocks)、產生器 (Generators)、工具箱 (Toolbox) 與語系資源。
+    - HarmoNyx 現已具備與 #stage 完全一致的邏輯與功能，並針對 Tauri 環境進行了 IO 與路徑優化。
+- **介面優化 (UI Polishing)**: 
+    - **下拉選單**: 實作「摺疊式 (Accordion)」選單，解決了長清單無法捲動與子選單被裁剪的衝突。
+    - **暗色模式**: 針對影子積木與輸入欄位實作了高對比樣式 (白底深色字)，大幅提升可讀性。
+    - **檔案 IO**: 支援 `.xml` 與 `.nyx` 格式，並加入自動檔案過濾器。
+- **除錯支援**: 實作了 Processing 日誌串流，現在可以在瀏覽器 Console 中即時看到 Java 的輸出與錯誤訊息。
 
 ## 待解問題
-- 產生器驗證：需確保產出的 Java 代碼在 Processing 中能正確執行 (尤其是 Minim 部分)。
-- 專案路徑顯示：目前的存檔功能雖然能運作，但介面的路徑顯示還可進一步優化。
+- 產生器驗證：雖然已同步邏輯，仍建議持續測試複雜範例 (如 Launchpad 連動) 以確保 100% 行為一致。
+- 效能監控：日誌串流在大量輸出時對前端效能的影響待觀察。
+
 
 ## 2026-03-16 (專案重生)
 - **重大異動**: 專案已完全捨棄舊有的 React 原生結構，改以 **WaveCode** 的架構 (Tauri + Vite + Blockly) 為基底重啟。
@@ -37,3 +51,4 @@
     - 解決了 Minimap 圖示無法顯示的問題 (繼承 WaveCode 修復)。
     - 解決了積木載入時 `window.SB_Utils` 未定義的錯誤 (透過 `preinit.js` 第一行加載)。
 - **當前狀態**: UI 已能正常開啟，待驗證 Processing 執行功能。
+

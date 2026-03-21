@@ -1,0 +1,123 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <variables>
+    <variable id="E=mzf@D?z/WQM@0mehXU">channel</variable>
+    <variable id="Zk=xeNwCzE{tu(j2*m1!">pitch</variable>
+    <variable id="ffV/C}vmgi@Z39;_D{zX">velocity</variable>
+  </variables>
+  <block type="sb_comment" id="guide" x="10" y="10">
+    <field name="TEXT">【使用MIDI鍵盤演奏 - 多裝置支援版】&amp;#10;1. 點擊「執行」啟動。&amp;#10;2. 已設定裝置名稱為 Keyboard。&amp;#10;3. 使用左/右方向鍵切換樂器。&amp;#10;4. 支援多個 MIDI 裝置並行初始化。</field>
+  </block>
+  <block type="sb_instrument_container" id="D!V_O^(~:7NvZL,JzN}1" x="10" y="150">
+    <field name="NAME">Organ</field>
+    <statement name="STACK">
+      <block type="sb_create_harmonic_synth" id="create_organ">
+        <mutation items="4"></mutation>
+        <value name="PARTIAL1">
+          <block type="math_number" id="|?LxA0%.Qkxz*|FwkAI(">
+            <field name="NUM">1</field>
+          </block>
+        </value>
+        <value name="PARTIAL2">
+          <block type="math_number" id="Lj$*7tzx4jn^b)uO#Ec[">
+            <field name="NUM">0.5</field>
+          </block>
+        </value>
+        <value name="PARTIAL3">
+          <block type="math_number" id=",Xntf[vc3RQ!dsriH|rU">
+            <field name="NUM">0.3</field>
+          </block>
+        </value>
+        <value name="PARTIAL4">
+          <block type="math_number" id="GK$2WqEkqA0I*SoB8bYQ">
+            <field name="NUM">0.2</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="sb_instrument_container" id="ax.$c/-Yo^1;Mr68_K5G" x="10" y="350">
+    <field name="NAME">Bell</field>
+    <statement name="STACK">
+      <block type="sb_create_additive_synth" id="create_bell">
+        <mutation items="3"></mutation>
+        <field name="WAVE1">SINE</field>
+        <field name="RATIO1">1</field>
+        <field name="AMP1">0.8</field>
+        <field name="WAVE2">TRIANGLE</field>
+        <field name="RATIO2">2.76</field>
+        <field name="AMP2">0.4</field>
+        <field name="WAVE3">SQUARE</field>
+        <field name="RATIO3">5.4</field>
+        <field name="AMP3">0.2</field>
+      </block>
+    </statement>
+  </block>
+  <block type="processing_setup" id="setup" x="10" y="530">
+    <statement name="DO">
+      <block type="sb_minim_init" id="init_minim">
+        <next>
+          <block type="sb_comment" id=".t!t}]7CVdAf/?A_ucOr">
+            <field name="TEXT">MIDI 裝置的 I/O Index 要先執行程式，&amp;#10;再從下方輸出面板查看後回填。無則填 -1。</field>
+            <next>
+              <block type="midi_init" id="midi_init">
+                <field name="NAME">Keyboard</field>
+                <field name="INPUT">0</field>
+                <field name="OUTPUT">-1</field>
+                <next>
+                  <block type="visual_stage_setup" id="super_stage">
+                    <field name="W">1200</field>
+                    <field name="H">400</field>
+                    <field name="BG_COLOR">#000000</field>
+                    <field name="FG_COLOR">#75fb4c</field>
+                    <next>
+                      <block type="sb_select_current_instrument" id="select_init">
+                        <field name="NAME">Organ</field>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="midi_on_note" id="midi_on" x="10" y="810">
+    <field name="BUS_NAME">Keyboard</field>
+    <field name="CHANNEL" id="E=mzf@D?z/WQM@0mehXU">channel</field>
+    <field name="PITCH" id="Zk=xeNwCzE{tu(j2*m1!">pitch</field>
+    <field name="VELOCITY" id="ffV/C}vmgi@Z39;_D{zX">velocity</field>
+    <statement name="DO">
+      <block type="sb_play_note" id="play">
+        <field name="NAME">當前選用的樂器</field>
+        <value name="PITCH">
+          <block type="variables_get" id="NHsG{Y@0V/q2haZbHH)Z">
+            <field name="VAR" id="Zk=xeNwCzE{tu(j2*m1!">pitch</field>
+          </block>
+        </value>
+        <value name="VELOCITY">
+          <block type="variables_get" id="/xaCaW`uAynCt]nA_1LN">
+            <field name="VAR" id="ffV/C}vmgi@Z39;_D{zX">velocity</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+  <block type="midi_off_note" id="midi_off" x="10" y="930">
+    <field name="BUS_NAME">Keyboard</field>
+    <field name="CHANNEL" id="E=mzf@D?z/WQM@0mehXU">channel</field>
+    <field name="PITCH" id="Zk=xeNwCzE{tu(j2*m1!">pitch</field>
+    <field name="VELOCITY" id="ffV/C}vmgi@Z39;_D{zX">velocity</field>
+    <statement name="DO">
+      <block type="sb_stop_note" id="stop">
+        <field name="NAME">當前選用的樂器</field>
+        <value name="PITCH">
+          <block type="variables_get" id="my+jXSVMe27{,=_-P0jv">
+            <field name="VAR" id="Zk=xeNwCzE{tu(j2*m1!">pitch</field>
+          </block>
+        </value>
+      </block>
+    </statement>
+  </block>
+</xml>

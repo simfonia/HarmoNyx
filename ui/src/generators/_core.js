@@ -72,7 +72,7 @@ int getMidi(Object o) {
 `;
 
   // 2. 基礎音訊輔助函式 (可被超級舞台的 GENERAL_HELPERS 覆寫)
-  Blockly.Processing.definitions_['Helpers'] = `
+  Blockly.Processing.definitions_['Helpers_Core'] = `
 int noteToMidi(String note) {
   String n = note.toUpperCase(); if (n.equals("R")) return -1; if (n.equals("X")) return 69;
   int octave = 4; if (n.length() > 1 && Character.isDigit(n.charAt(n.length()-1))) { 
@@ -126,6 +126,47 @@ Blockly.Processing.provideDraw = function(code, opt_key) {
  * Finish the code generation.
  */
 Blockly.Processing.finish = function(code) {
+  // --- 0. Pre-process MIDI Event Arrays ---
+  const noteOnEvents = (Blockly.Processing.definitions_['midi_events_note_on'] || []).join('\n');
+  const noteOffEvents = (Blockly.Processing.definitions_['midi_events_note_off'] || []).join('\n');
+  const ccEvents = (Blockly.Processing.definitions_['midi_events_cc'] || []).join('\n');
+
+  if (noteOnEvents || noteOffEvents || ccEvents) {
+    let midiFuncs = `
+void noteOn(int channel, int pitch, int velocity) {
+  if (midiBusses.size() == 1) { for (String name : midiBusses.keySet()) { noteOn(channel, pitch, velocity, name); } }
+  else { noteOn(channel, pitch, velocity, "MIDI_1"); }
+}
+void noteOff(int channel, int pitch, int velocity) {
+  if (midiBusses.size() == 1) { for (String name : midiBusses.keySet()) { noteOff(channel, pitch, velocity, name); } }
+  else { noteOff(channel, pitch, velocity, "MIDI_1"); }
+}
+void controllerChange(int channel, int number, int value) {
+  if (midiBusses.size() == 1) { for (String name : midiBusses.keySet()) { controllerChange(channel, number, value, name); } }
+  else { controllerChange(channel, number, value, "MIDI_1"); }
+}
+void noteOn(int channel, int pitch, int velocity, String bus_name) {
+  logToScreen("[" + bus_name + "] Note ON - P: " + pitch + " V: " + velocity, 0);
+  midiKeysHeld.put(pitch, currentInstrument);
+${noteOnEvents}
+}
+void noteOff(int channel, int pitch, int velocity, String bus_name) {
+  logToScreen("[" + bus_name + "] Note OFF - P: " + pitch, 0);
+  String memorizedInst = midiKeysHeld.get(pitch);
+  if (memorizedInst != null) {
+    String backup = currentInstrument; currentInstrument = memorizedInst;
+${noteOffEvents}
+    currentInstrument = backup; midiKeysHeld.remove(pitch);
+  } else { ${noteOffEvents} }
+}
+void controllerChange(int channel, int number, int value, String bus_name) { ${ccEvents} }
+`;
+    Blockly.Processing.definitions_['midi_callbacks'] = midiFuncs;
+  }
+  delete Blockly.Processing.definitions_['midi_events_note_on'];
+  delete Blockly.Processing.definitions_['midi_events_note_off'];
+  delete Blockly.Processing.definitions_['midi_events_cc'];
+
   // 1. Process Imports
   const uniqueImports = new Set();
   if (Blockly.Processing.imports_) {
@@ -148,7 +189,23 @@ Blockly.Processing.finish = function(code) {
     .filter(d => typeof d === 'string') 
     .map(d => d.trim()).filter(d => d !== "").join('\n\n');
 
-  // 4. Setup Function
+  // 4. Handle Key Event Placeholders
+  let pressedEventsCode = "";
+  let releasedEventsCode = "";
+  if (Blockly.Processing.keyEvents_) {
+    Blockly.Processing.keyEvents_.forEach(ev => {
+      let eventCode = `if (k == '${ev.key}') {\n      ${ev.code.replace(/\n/g, '\n      ')}\n    }\n    `;
+      if (ev.mode === 'RELEASED') releasedEventsCode += eventCode;
+      else pressedEventsCode += eventCode;
+    });
+  }
+  
+  // 使用全域正則表達式確保所有佔位符都被替換
+  definitionsStr = definitionsStr
+    .replace(/\{\{KEY_PRESSED_EVENT_PLACEHOLDER\}\}/g, pressedEventsCode)
+    .replace(/\{\{KEY_RELEASED_EVENT_PLACEHOLDER\}\}/g, releasedEventsCode);
+
+  // 5. Setup Function
   const setupParts = Blockly.Processing.setups_ || {};
   let sortedSetup = [];
   if (setupParts['stage_init_size']) { sortedSetup.push(setupParts['stage_init_size']); delete setupParts['stage_init_size']; }
@@ -158,28 +215,16 @@ Blockly.Processing.finish = function(code) {
 
   const setupCode = 'void setup() {\n  ' + sortedSetup.join('\n  ').replace(/\n/g, '\n  ') + '\n}\n';
 
-  // 5. Draw Function
+  // 6. Draw Function
   const drawParts = Object.values(Blockly.Processing.draws_ || []).map(d => d.trim()).filter(d => d !== "");
   const fullDrawCode = (drawParts.join('\n') + '\n' + code).trim();
   const drawCodeStr = 'void draw() {\n  ' + (fullDrawCode ? fullDrawCode.replace(/\n/g, '\n  ') : '') + '\n}\n';
-
-  // 6. Process Event Placeholders (Key Events)
-  let finalDefinitions = definitionsStr;
-  const keyPressedCode = (Blockly.Processing.keyEvents_ || [])
-    .filter(e => e.type === 'pressed')
-    .map(e => e.code).join('\n  ');
-  const keyReleasedCode = (Blockly.Processing.keyEvents_ || [])
-    .filter(e => e.type === 'released')
-    .map(e => e.code).join('\n  ');
-
-  finalDefinitions = finalDefinitions.replace('{{KEY_PRESSED_EVENT_PLACEHOLDER}}', keyPressedCode);
-  finalDefinitions = finalDefinitions.replace('{{KEY_RELEASED_EVENT_PLACEHOLDER}}', keyReleasedCode);
 
   // 7. Combine all
   let segments = [];
   if (importsStr) segments.push(importsStr);
   if (globalVars) segments.push(globalVars);
-  if (finalDefinitions) segments.push(finalDefinitions);
+  if (definitionsStr) segments.push(definitionsStr);
   segments.push(setupCode);
   segments.push(drawCodeStr);
 

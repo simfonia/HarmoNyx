@@ -7,8 +7,8 @@
     <style>
         /* 強制確保 Blockly SVG 可見 */
         .blocklyWidgetDiv, .blocklyTooltipDiv { z-index: 1000; }
-        .blocklySvg { background-color: #1e1e1e !important; width: 100%; height: 100%; display: block; }
-        .blocklyMainBackground { fill: #1e1e1e !important; }
+        .blocklySvg { background-color: #050505 !important; width: 100%; height: 100%; display: block; }
+        .blocklyMainBackground { fill: #050505 !important; }
     </style>
 </head>
 <body>
@@ -23,26 +23,51 @@
                 <span id="display-filename">未命名專案</span>
             </div>
             <div class="toolbar">
-                <div id="new-btn" class="icon-btn" data-i18n-title="HARMONYX_NEW"><img src="/icons/new_24dp_FE2F89.png"></div>
-                <div id="examples-btn" class="icon-btn" data-i18n-title="HARMONYX_EXAMPLES"><img src="/icons/examples_24dp_FE2F89.png"></div>
-                <div id="open-btn" class="icon-btn" data-i18n-title="HARMONYX_OPEN"><img src="/icons/load_project_24dp_FE2F89.png"></div>
-                <div id="save-btn" class="icon-btn" data-i18n-title="HARMONYX_SAVE"><img src="/icons/save_24dp_FE2F89.png"></div>
+                <div id="new-btn" class="icon-btn" data-i18n-title="HARMONYX_NEW"><img src="/icons/new_24dp_FE2F89.png" class="nyx-icon-purple"></div>
+                <div id="examples-btn" class="icon-btn" data-i18n-title="HARMONYX_EXAMPLES"><img src="/icons/examples_24dp_FE2F89.png" class="nyx-icon-purple"></div>
+                <div id="open-btn" class="icon-btn" data-i18n-title="HARMONYX_OPEN"><img src="/icons/load_project_24dp_FE2F89.png" class="nyx-icon-purple"></div>
+                <div id="save-btn" class="icon-btn" data-i18n-title="HARMONYX_SAVE"><img src="/icons/save_24dp_FE2F89.png" class="nyx-icon-purple"></div>
                 <div class="sep"></div>
-                <div id="run-btn" class="icon-btn" data-i18n-title="HARMONYX_RUN"><img src="/icons/run_blocks_24dp_75FB4C.png"></div>
-                <div id="stop-btn" class="icon-btn" data-i18n-title="HARMONYX_STOP"><img src="/icons/stop_24dp_EA3323.png"></div>
+                <div id="run-btn" class="icon-btn" data-i18n-title="HARMONYX_RUN"><img src="/icons/run_blocks_24dp_75FB4C.png" class="nyx-icon-green"></div>
+                <div id="stop-btn" class="icon-btn" data-i18n-title="HARMONYX_STOP"><img src="/icons/stop_24dp_EA3323.png" class="nyx-icon-red"></div>
                 <div class="sep"></div>
-                <div id="settings-btn" class="icon-btn" data-i18n-title="HARMONYX_SETTINGS"><img src="/icons/settings_24dp_FE2F89.png"></div>
+                <div id="settings-btn" class="icon-btn" data-i18n-title="HARMONYX_SETTINGS"><img src="/icons/settings_24dp_FE2F89.png" class="nyx-icon-purple"></div>
                 <div class="sep"></div>
                 <div id="update-btn" class="icon-btn update-hidden" data-i18n-title="HARMONYX_UPDATE_CHECK">
-                    <img src="/icons/published_with_changes_24dp_75FB4C.png" class="update-icon">
+                    <img src="/icons/published_with_changes_24dp_75FB4C.png" class="update-icon nyx-icon-green">
                     <span class="update-badge"></span>
                 </div>
             </div>
         </header>
         <main>
             <div id="blocklyDiv"></div>
-            <div id="stage">
-                <canvas id="waveformCanvas"></canvas>
+            <div id="stage-panel">
+                <div class="panel-section" id="visual-section">
+                    <div class="section-header">
+                        <img src="/icons/icon.png" class="nyx-icon-blue">
+                        <span data-i18n="HARMONYX_STAGE_VISUAL">視覺舞台</span>
+                    </div>
+                    <div class="section-content">
+                        <canvas id="waveformCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="panel-section" id="log-section">
+                    <div class="section-header">
+                        <img src="/icons/export_code_24dp_FE2F89.png" class="nyx-icon-neon">
+                        <span data-i18n="HARMONYX_STAGE_LOG">執行日誌</span>
+                        <div class="header-actions">
+                            <div id="clear-log-btn" class="mini-btn" title="清除日誌">
+                                <img src="/icons/clear_log_24dp_FE2F89.png" class="nyx-icon-neon">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div id="log-container"></div>
+                    </div>
+                </div>
+                <div id="stage-toggle" title="切換面板">
+                    <span class="arrow">▶</span>
+                </div>
             </div>
         </main>
     </div>

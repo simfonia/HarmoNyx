@@ -14,5 +14,10 @@ Thumbs.db
 log/work/*.md
 !log/work/.gitkeep
 
+# App temp
+temp_sketches/
+temp_sketches/*
+
+# Processing
 processing-3.5.4/
 

@@ -31,7 +31,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_LIVE_SHOW_HUE}",
+    "colour": "#2C3E50",
     "tooltip": "即時改變舞台視覺或音訊參數。按右鍵選擇「說明」查看數值範圍。"
   },
   {
@@ -51,7 +51,7 @@ Blockly.defineBlocksWithJsonArray([
       }
     ],
     "output": "Number",
-    "colour": "%{BKY_LIVE_SHOW_HUE}",
+    "colour": "#2C3E50",
     "tooltip": "讀取目前的舞台參數數值。"
   },
   {
@@ -76,7 +76,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_LIVE_SHOW_HUE}",
+    "colour": "#2C3E50",
     "tooltip": "%{BKY_SB_LOG_TO_SCREEN_TOOLTIP}"
   }
 ]);

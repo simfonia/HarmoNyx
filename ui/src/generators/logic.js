@@ -7,6 +7,19 @@
  * Logic generators for Processing (Java).
  */
 
+const isKnownStringVar = (name) => {
+  const workspace = Blockly.getMainWorkspace();
+  if (!workspace) return false;
+  // Strip code artifacts to get the raw variable name
+  const cleanName = name.replace(/^String\.valueOf\((.*)\)$/, '$1').trim();
+  const variable = workspace.getVariable(cleanName);
+  return (variable && variable.type === 'String') || 
+         cleanName.toLowerCase().includes('text') || 
+         cleanName.toLowerCase().includes('msg') ||
+         name.includes('String.valueOf') ||
+         name.includes('"');
+};
+
 Blockly.Processing.forBlock['controls_if'] = function(block) {
   let n = 0;
   let code = '';

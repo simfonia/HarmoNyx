@@ -37,25 +37,20 @@ pub fn get_samples_path(app_handle: &tauri::AppHandle) -> PathBuf {
 
 /// 跨平台目錄連結 (Windows 使用 Junction, Unix 使用 Symlink)
 pub fn create_platform_link(target: &Path, link: &Path) -> std::io::Result<()> {
-    // 如果連結已存在，先刪除
     if link.exists() {
         if link.is_dir() {
-            // Windows 下若是 Junction/Symlink，remove_dir_all 可能會刪除內容，
-            // 建議使用 fs::remove_dir 或特定指令，但對於開發用途先這樣
             let _ = fs::remove_dir_all(link);
         } else {
             let _ = fs::remove_file(link);
         }
     }
     
-    // 確保父目錄存在
     if let Some(parent) = link.parent() {
         let _ = fs::create_dir_all(parent);
     }
 
     #[cfg(windows)]
     {
-        // Windows 使用 mklink /J 建立 Junction (不需管理員權限)
         let target_str = target.to_str().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid target path"))?;
         let link_str = link.to_str().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid link path"))?;
         
@@ -88,7 +83,7 @@ pub fn get_processing_cmd() -> String {
     let p1 = Path::new(cmd_name);
     if p1.exists() { return p1.to_str().unwrap().to_string(); }
 
-    // 2. 檢查專案根目錄下的 processing-3.5.4 (往上找兩層，適應 src-tauri 開發環境)
+    // 2. 檢查專案根目錄下的 processing-3.5.4
     let search_paths = [
         Path::new("processing-3.5.4").join(cmd_name),
         Path::new("..").join("processing-3.5.4").join(cmd_name),
@@ -97,22 +92,13 @@ pub fn get_processing_cmd() -> String {
 
     for path in &search_paths {
         if path.exists() {
-            return fs::canonicalize(path).unwrap().to_str().unwrap().replace("\\\\?\\", "").to_string();
+            return fs::canonicalize(path).unwrap().to_str().unwrap().replace(r"\\?\", "").to_string();
         }
     }
 
     // 3. 檢查系統 PATH
-    if let Ok(_path) = which::which(cmd_name) {
-        return cmd_name.to_string();
-    }
-
-    // 4. 針對此環境的硬編碼 Fallback
-    #[cfg(windows)]
-    {
-        let fallback = Path::new("C:/Workspace/SynthBlocklyStage/processing-3.5.4/processing-java.exe");
-        if fallback.exists() {
-            return fallback.to_str().unwrap().to_string();
-        }
+    if let Ok(path) = which::which(cmd_name) {
+        return path.to_str().unwrap().to_string();
     }
 
     cmd_name.to_string()

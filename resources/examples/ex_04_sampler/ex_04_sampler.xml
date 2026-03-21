@@ -1,0 +1,514 @@
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="sb_comment" id="f@L)!ssPW$J-,Ap%;3ac" x="10" y="10">
+    <field name="TEXT">此範例展示如何使用真實樂器的音色&amp;#10;&amp;#10;請切換Lead樂器中的音源，&amp;#10;體驗合成器與取樣器的不同感受。&amp;#10;旋律取樣器只對ADSR中的R有效。&amp;#10;&amp;#10;注意：&amp;#10;本範例兩個聲部音高沒有重疊，&amp;#10;若有重疊，最好為每個聲部配置專屬樂器，&amp;#10;否則同音時，ADSR會互相干擾。</field>
+  </block>
+  <block type="processing_setup" id="Jv3-%AxQrgzq^8;pwwhH" x="10" y="250">
+    <statement name="DO">
+      <block type="sb_minim_init" id="ghU*B?rx;#9Zledm}-~y">
+        <next>
+          <block type="visual_stage_setup" id="/Rti;ed8I|rEbGukh@$U">
+            <field name="W">1200</field>
+            <field name="H">400</field>
+            <field name="BG_COLOR">#000000</field>
+            <field name="FG_COLOR">#ff0096</field>
+            <next>
+              <block type="sb_transport_set_bpm" id="qwG2ea(r11Nx`FAeL:o@">
+                <value name="BPM">
+                  <shadow type="math_number" id="}vFB]#u;bZ[24PwR%jHe">
+                    <field name="NUM">120</field>
+                  </shadow>
+                </value>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="sb_instrument_container" id="gJqsx!(m0h~j=*#b?S41" x="10" y="450">
+    <field name="NAME">Lead</field>
+    <statement name="STACK">
+      <block type="sb_set_wave" id="Z0|[Q7}FkYoeF1LtS|Xu" disabled-reasons="MANUALLY_DISABLED">
+        <field name="TYPE">SINE</field>
+        <next>
+          <block type="sb_melodic_sampler" id="D)VzN4RFQxp,Fs^WGonV">
+            <mutation type="PIANO"></mutation>
+            <field name="TYPE">PIANO</field>
+            <next>
+              <block type="sb_set_adsr" id="Lm|eJGD-`!-zML)zLi1J" disabled-reasons="MANUALLY_DISABLED">
+                <value name="A">
+                  <shadow type="math_number" id="P=yln5lv,(#,Ay!]o(Ka">
+                    <field name="NUM">0.01</field>
+                  </shadow>
+                </value>
+                <value name="D">
+                  <shadow type="math_number" id="T]up-%h{#6t(nit@9mf3">
+                    <field name="NUM">0.1</field>
+                  </shadow>
+                </value>
+                <value name="S">
+                  <shadow type="math_number" id="q{N(dF%qZZ4Frn$CeWd]">
+                    <field name="NUM">0.5</field>
+                  </shadow>
+                </value>
+                <value name="R">
+                  <shadow type="math_number" id="_!WU49d$M?6UGhxt+HxJ">
+                    <field name="NUM">0.5</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="sb_set_instrument_volume" id="YQZbVNaU.fKo{e%URegt">
+                    <field name="NAME">Lead</field>
+                    <value name="VOLUME">
+                      <shadow type="math_number" id="4bejf^A-1@K^FWviDXeO">
+                        <field name="NUM">100</field>
+                      </shadow>
+                    </value>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="sb_instrument_container" id="9/}qj8c]i{(O:/3I[.{Q" x="10" y="750">
+    <field name="NAME">clap</field>
+    <statement name="STACK">
+      <block type="sb_drum_sampler" id="oQDX:AbZ4}?N]U##N[bt">
+        <mutation type="drum/clap.wav"></mutation>
+        <field name="PATH">drum/clap.wav</field>
+        <next>
+          <block type="sb_set_instrument_volume" id="+Ar^CPsmB3ro+gqeqY/L">
+            <field name="NAME">clap</field>
+            <value name="VOLUME">
+              <shadow type="math_number" id="+(QpLOUj,QL0h}.gX$x-">
+                <field name="NUM">90</field>
+              </shadow>
+            </value>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="sb_perform" id="Ky0,:V3q%$rAxVV,g2r5" x="10" y="870">
+    <statement name="DO">
+      <block type="sb_comment" id="20+G]u?LT`lC?Oi^3pc|">
+        <field name="TEXT">左手伴奏</field>
+        <next>
+          <block type="controls_repeat_ext" id="4Ve(#,jes:Rj9E5z[~bT">
+            <value name="TIMES">
+              <shadow type="math_number" id="NXRzP!r-/5$8xL,*N!,=">
+                <field name="NUM">2</field>
+              </shadow>
+            </value>
+            <statement name="DO">
+              <block type="sb_trigger_sample" id="b2:M!d95]J=mGwiDrXjS">
+                <field name="NAME">Lead</field>
+                <field name="NOTE">C3E</field>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="AUAx153n%2!|T2LpD*i+">
+                    <field name="NUM">80</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="sb_wait_musical" id="pGlP?;qr,gL.y?*kEHmk">
+                    <field name="UNIT">BEATS</field>
+                    <value name="VALUE">
+                      <shadow type="math_number" id="s1@2FgD;@sPJ/TeBwDe+">
+                        <field name="NUM">0.5</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="sb_trigger_sample" id="-+Ljd-d@.u0Zi2Qk%J(C">
+                        <field name="NAME">Lead</field>
+                        <field name="NOTE">G3E</field>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="F8rr3gc.x|-.G56`3+]U">
+                            <field name="NUM">30</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="sb_wait_musical" id="b:h1v)N+?F,[s/cVg)Ij">
+                            <field name="UNIT">BEATS</field>
+                            <value name="VALUE">
+                              <shadow type="math_number" id="*+{F}Q9L}U7|A1,xaOZZ">
+                                <field name="NUM">0.5</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="sb_trigger_sample" id="=VHi!rHSn0SfAGw5Tn]~">
+                                <field name="NAME">Lead</field>
+                                <field name="NOTE">E3E</field>
+                                <value name="VELOCITY">
+                                  <shadow type="math_number" id="|+PPVMftZ=FB4K_(Ov;F">
+                                    <field name="NUM">30</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="sb_wait_musical" id="mWH=T%{v2w5L2P%0FA3n">
+                                    <field name="UNIT">BEATS</field>
+                                    <value name="VALUE">
+                                      <shadow type="math_number" id="tl7lu=NPlXO90IavJ`TT">
+                                        <field name="NUM">0.5</field>
+                                      </shadow>
+                                    </value>
+                                    <next>
+                                      <block type="sb_trigger_sample" id="Yd_1Zf9a%~AJ9bnp_zLc">
+                                        <field name="NAME">Lead</field>
+                                        <field name="NOTE">G3E</field>
+                                        <value name="VELOCITY">
+                                          <shadow type="math_number" id="~bKFu$u?tMGbg+tsQ5*;">
+                                            <field name="NUM">30</field>
+                                          </shadow>
+                                        </value>
+                                        <next>
+                                          <block type="sb_wait_musical" id="#oeo`?^tz{zq1[{?|AhA">
+                                            <field name="UNIT">BEATS</field>
+                                            <value name="VALUE">
+                                              <shadow type="math_number" id=",D|{eBT~XUFJO]-QMAbQ">
+                                                <field name="NUM">0.5</field>
+                                              </shadow>
+                                            </value>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </statement>
+            <next>
+              <block type="controls_repeat_ext" id="Zt:4#HIy3WV78^bp7D2.">
+                <value name="TIMES">
+                  <shadow type="math_number" id="qlhsQy#`.T68|N9oAZk+">
+                    <field name="NUM">2</field>
+                  </shadow>
+                </value>
+                <statement name="DO">
+                  <block type="sb_trigger_sample" id="@v9dqiDPfSSd:eMW%;{;">
+                    <field name="NAME">Lead</field>
+                    <field name="NOTE">D3E</field>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="c`-RX!T(L{kja=ow6-tk">
+                        <field name="NUM">80</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="sb_wait_musical" id="csgwhc8.14$6~H{#3|G4">
+                        <field name="UNIT">BEATS</field>
+                        <value name="VALUE">
+                          <shadow type="math_number" id="3fVYm.*=lt1Uz@%=gW=#">
+                            <field name="NUM">0.5</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="sb_trigger_sample" id=".g-H4I0c=pGq;GpgZXm3">
+                            <field name="NAME">Lead</field>
+                            <field name="NOTE">G3E</field>
+                            <value name="VELOCITY">
+                              <shadow type="math_number" id=":ckW/5ZW`TND.h~}};~3">
+                                <field name="NUM">30</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="sb_wait_musical" id="=G58`5zZN7rATgLlf~s+">
+                                <field name="UNIT">BEATS</field>
+                                <value name="VALUE">
+                                  <shadow type="math_number" id="ZE|AjS93O=iHKXtbuHc~">
+                                    <field name="NUM">0.5</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="sb_trigger_sample" id="{uD3d1#-b:L3]h+bYGn%">
+                                    <field name="NAME">Lead</field>
+                                    <field name="NOTE">F3E</field>
+                                    <value name="VELOCITY">
+                                      <shadow type="math_number" id="}F92MR3}tHIvslv|Yr4L">
+                                        <field name="NUM">30</field>
+                                      </shadow>
+                                    </value>
+                                    <next>
+                                      <block type="sb_wait_musical" id="{HCD(7SK7JSSdLq$py~L">
+                                        <field name="UNIT">BEATS</field>
+                                        <value name="VALUE">
+                                          <shadow type="math_number" id="Vm-WMNByOIB+RX)uy5H:">
+                                            <field name="NUM">0.5</field>
+                                          </shadow>
+                                        </value>
+                                        <next>
+                                          <block type="sb_trigger_sample" id="hLqgehCR3{*{T5Mhm76m">
+                                            <field name="NAME">Lead</field>
+                                            <field name="NOTE">G3E</field>
+                                            <value name="VELOCITY">
+                                              <shadow type="math_number" id="~H7*N.Ex-G`$$vOwYk[V">
+                                                <field name="NUM">30</field>
+                                              </shadow>
+                                            </value>
+                                            <next>
+                                              <block type="sb_wait_musical" id="*x0eaZDpAV(b+/,]k^Sv">
+                                                <field name="UNIT">BEATS</field>
+                                                <value name="VALUE">
+                                                  <shadow type="math_number" id="E)3|j+3`L9FdU(G_OzPB">
+                                                    <field name="NUM">0.5</field>
+                                                  </shadow>
+                                                </value>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="sb_perform" id="iL(;3l#n91x{%S3sTJ:%" x="470" y="870">
+    <statement name="DO">
+      <block type="sb_comment" id="=3JrU`tf^;V:?o^3i^H}">
+        <field name="TEXT">右手主旋律</field>
+        <next>
+          <block type="controls_repeat_ext" id="p!)^EM,m9U2MMwCB:H1`">
+            <value name="TIMES">
+              <shadow type="math_number" id="Q3AhRES|e413+Dt:*w:a">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <statement name="DO">
+              <block type="sb_trigger_sample" id="M4L6gvddaYDOPrtW6$ga">
+                <field name="NAME">Lead</field>
+                <field name="NOTE">G5Q</field>
+                <value name="VELOCITY">
+                  <shadow type="math_number" id="cxc,GOeMtbOwB(VWQX,)">
+                    <field name="NUM">50</field>
+                  </shadow>
+                </value>
+                <next>
+                  <block type="sb_wait_musical" id="Kfn4uqTG$zA@@6N;S})d">
+                    <field name="UNIT">BEATS</field>
+                    <value name="VALUE">
+                      <shadow type="math_number" id="nyS@s4f_IYE{`QmL=F7Y">
+                        <field name="NUM">1</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="sb_trigger_sample" id="#V3dj~,q1f*KWa)whm[J">
+                        <field name="NAME">Lead</field>
+                        <field name="NOTE">E5Q</field>
+                        <value name="VELOCITY">
+                          <shadow type="math_number" id="Ytm.{wYdq7r26f%PU$#?">
+                            <field name="NUM">50</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="sb_wait_musical" id="lb.It*%8j`{|47]xmy(k">
+                            <field name="UNIT">BEATS</field>
+                            <value name="VALUE">
+                              <shadow type="math_number" id="j^FV!|hMYz7|Bl1$;,*}">
+                                <field name="NUM">1</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="sb_trigger_sample" id="Q$Ms(8tG-jP![^oWWcmB">
+                                <field name="NAME">Lead</field>
+                                <field name="NOTE">E5Q</field>
+                                <value name="VELOCITY">
+                                  <shadow type="math_number" id="nS7YWqSPKE1|dHVeZQ[V">
+                                    <field name="NUM">50</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="sb_wait_musical" id="E]=jy)SV2(3f$ryn`/1%">
+                                    <field name="UNIT">BEATS</field>
+                                    <value name="VALUE">
+                                      <shadow type="math_number" id=",4Kqnn]eFK0v^(9WAolm">
+                                        <field name="NUM">1</field>
+                                      </shadow>
+                                    </value>
+                                    <next>
+                                      <block type="sb_trigger_sample" id="}MM(i2Tnv?zkWQQrwmr_">
+                                        <field name="NAME">clap</field>
+                                        <field name="NOTE">XQ</field>
+                                        <value name="VELOCITY">
+                                          <shadow type="math_number" id="$.Co?+?+?xal~5U:3]$m">
+                                            <field name="NUM">100</field>
+                                          </shadow>
+                                        </value>
+                                        <next>
+                                          <block type="sb_wait_musical" id="ar9.$q^;tJ.-p3Vkuz1b">
+                                            <field name="UNIT">BEATS</field>
+                                            <value name="VALUE">
+                                              <shadow type="math_number" id="y@L}:Xnhy@.[Q5|SMN/-">
+                                                <field name="NUM">1</field>
+                                              </shadow>
+                                            </value>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </statement>
+            <next>
+              <block type="controls_repeat_ext" id=",gN8UTQm5KOlNFwD;I}B">
+                <value name="TIMES">
+                  <shadow type="math_number" id="U!`0J7t,yun?d$HU,v*~">
+                    <field name="NUM">1</field>
+                  </shadow>
+                </value>
+                <statement name="DO">
+                  <block type="sb_trigger_sample" id="plXn`j=JF.e/;HuwBPLq">
+                    <field name="NAME">Lead</field>
+                    <field name="NOTE">F5Q</field>
+                    <value name="VELOCITY">
+                      <shadow type="math_number" id="uN7[#QlV[{fLP9WDl28.">
+                        <field name="NUM">50</field>
+                      </shadow>
+                    </value>
+                    <next>
+                      <block type="sb_wait_musical" id="Rh_d9cL$7I%avxrhW-Pb">
+                        <field name="UNIT">BEATS</field>
+                        <value name="VALUE">
+                          <shadow type="math_number" id="j;G`![J(^}|7tmXfoH,R">
+                            <field name="NUM">1</field>
+                          </shadow>
+                        </value>
+                        <next>
+                          <block type="sb_trigger_sample" id="zeGPsn0Yk6Z6iv/Q$)o#">
+                            <field name="NAME">Lead</field>
+                            <field name="NOTE">D5Q</field>
+                            <value name="VELOCITY">
+                              <shadow type="math_number" id="3ZUXHg$8Rj%[Xp?M?_k6">
+                                <field name="NUM">50</field>
+                              </shadow>
+                            </value>
+                            <next>
+                              <block type="sb_wait_musical" id="R_z:*XY|SbzWg)M]~o.D">
+                                <field name="UNIT">BEATS</field>
+                                <value name="VALUE">
+                                  <shadow type="math_number" id="0YDw`aWkspCG^M`R4JC5">
+                                    <field name="NUM">1</field>
+                                  </shadow>
+                                </value>
+                                <next>
+                                  <block type="sb_trigger_sample" id="yvoM}$u%Pe.r$(n]`]b#">
+                                    <field name="NAME">Lead</field>
+                                    <field name="NOTE">D5Q</field>
+                                    <value name="VELOCITY">
+                                      <shadow type="math_number" id="4;@LCoGDOM=Zs}-(ukY]">
+                                        <field name="NUM">50</field>
+                                      </shadow>
+                                    </value>
+                                    <next>
+                                      <block type="sb_wait_musical" id="K[*2~.#~to)aapyZyJU]">
+                                        <field name="UNIT">BEATS</field>
+                                        <value name="VALUE">
+                                          <shadow type="math_number" id="X7EQN,{Y[I*h((x2rcJ%">
+                                            <field name="NUM">1</field>
+                                          </shadow>
+                                        </value>
+                                        <next>
+                                          <block type="sb_trigger_sample" id="f^t=Z[#L;WBoKJJHQ[xM">
+                                            <field name="NAME">clap</field>
+                                            <field name="NOTE">XQ</field>
+                                            <value name="VELOCITY">
+                                              <shadow type="math_number" id="oLw$7WRw)QR=g7=HY2;;">
+                                                <field name="NUM">100</field>
+                                              </shadow>
+                                            </value>
+                                            <next>
+                                              <block type="sb_wait_musical" id="Tg+tf$m1GZ#W|lfVCN6Z">
+                                                <field name="UNIT">BEATS</field>
+                                                <value name="VALUE">
+                                                  <shadow type="math_number" id="!J?LJSZT5n)dMcE+xByC">
+                                                    <field name="NUM">1</field>
+                                                  </shadow>
+                                                </value>
+                                              </block>
+                                            </next>
+                                          </block>
+                                        </next>
+                                      </block>
+                                    </next>
+                                  </block>
+                                </next>
+                              </block>
+                            </next>
+                          </block>
+                        </next>
+                      </block>
+                    </next>
+                  </block>
+                </statement>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="processing_draw" id="V,WL;(TDQH:RR{oR2?hO" x="10" y="1670">
+    <statement name="DO">
+      <block type="controls_if" id="MsHB}p,0fW]esD5f1*S#">
+        <value name="IF0">
+          <block type="logic_compare" id="Yop!:unX2zMf`sMU93QO">
+            <field name="OP">GT</field>
+            <value name="A">
+              <block type="processing_frame_count" id="/O0/#3M/9eegTyA1E`]]"></block>
+            </value>
+            <value name="B">
+              <block type="math_number" id=",WPN-uULBGmP5LkeUV?l">
+                <field name="NUM">60</field>
+              </block>
+            </value>
+          </block>
+        </value>
+        <statement name="DO0">
+          <block type="controls_if" id="I-_$VF@zVAeI+}u/yuOn">
+            <value name="IF0">
+              <block type="logic_negate" id="A$MGQL_$-NexBc87^S]0">
+                <value name="BOOL">
+                  <block type="sb_audio_is_playing" id="KN)p~#k7#|YQXL]aykDE"></block>
+                </value>
+              </block>
+            </value>
+            <statement name="DO0">
+              <block type="processing_exit" id=")BJb3OLX:d[CxTN;lm.e"></block>
+            </statement>
+          </block>
+        </statement>
+      </block>
+    </statement>
+  </block>
+</xml>

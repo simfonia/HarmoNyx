@@ -1,567 +1,675 @@
 /**
- * HarmoNyx Toolbox Definition - Aligned with SynthBlockly Stage
+ * HarmoNyx Toolbox Definition
+ * 
+ * 定義 Blockly 工具箱的分類與積木排列結構。
+ * 此檔案與 SynthBlockly Stage (#stage) 的 toolbox.xml 完全同步。
  */
 
-export const WaveCodeToolbox = {
-    'kind': 'categoryToolbox',
-    'contents': [
-        // 1. Processing Structure
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_STRUCTURE}',
-            'colour': '%{BKY_STRUCTURE_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'processing_setup' },
-                { 'kind': 'block', 'type': 'processing_draw' },
-                { 'kind': 'block', 'type': 'processing_exit' }
-            ]
-        },
+export const WaveCodeToolbox = `
+<xml>
+    <sep></sep>
+    <!-- 1. Processing Structure -->
+    <category name="%{BKY_CAT_STRUCTURE}" colour="%{BKY_STRUCTURE_HUE}">
+        <block type="processing_setup"></block>
+        <block type="processing_draw"></block>
+        <block type="processing_exit"></block>
+    </category>
 
-        { 'kind': 'sep' },
+    <sep></sep>
 
-        // 2. Logic
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_LOGIC}',
-            'colour': '%{BKY_LOGIC_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'controls_if' },
-                { 'kind': 'block', 'type': 'logic_compare' },
-                { 'kind': 'block', 'type': 'logic_operation' },
-                { 'kind': 'block', 'type': 'logic_negate' },
-                { 'kind': 'block', 'type': 'logic_boolean' },
-                { 'kind': 'block', 'type': 'logic_null' },
-                { 'kind': 'block', 'type': 'logic_ternary' }
-            ]
-        },
+    <!-- 2. Logic -->
+    <category name="%{BKY_CAT_LOGIC}" colour="%{BKY_LOGIC_HUE}">
+        <block type="controls_if"></block>
+        <block type="logic_compare"></block>
+        <block type="logic_operation"></block>
+        <block type="logic_negate"></block>
+        <block type="logic_boolean"></block>
+        <block type="logic_null"></block>
+        <block type="logic_ternary"></block>
+    </category>
 
-        // 3. Loops
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_LOOPS}',
-            'colour': '%{BKY_LOOPS_HUE}',
-            'contents': [
-                {
-                    'kind': 'block',
-                    'type': 'controls_repeat_ext',
-                    'inputs': { 'TIMES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 10 } } } }
-                },
-                { 'kind': 'block', 'type': 'controls_whileUntil' },
-                {
-                    'kind': 'block',
-                    'type': 'controls_for',
-                    'inputs': {
-                        'FROM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
-                        'TO': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 10 } } },
-                        'BY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
-                    }
-                },
-                { 'kind': 'block', 'type': 'controls_forEach' },
-                { 'kind': 'block', 'type': 'controls_flow_statements' }
-            ]
-        },
+    <!-- 3. Loops -->
+    <category name="%{BKY_CAT_LOOPS}" colour="%{BKY_LOOPS_HUE}">
+        <block type="controls_repeat_ext">
+            <value name="TIMES">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="controls_whileUntil"></block>
+        <block type="controls_for">
+            <value name="FROM">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="TO">
+                <shadow type="math_number">
+                    <field name="NUM">10</field>
+                </shadow>
+            </value>
+            <value name="BY">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="controls_forEach"></block>
+        <block type="controls_flow_statements"></block>
+    </category>
 
-        // 4. Math
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_MATH}',
-            'colour': '%{BKY_MATH_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'math_number' },
-                {
-                    'kind': 'block',
-                    'type': 'math_arithmetic',
-                    'inputs': {
-                        'A': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
-                        'B': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
-                    }
-                },
-                { 'kind': 'block', 'type': 'math_single' },
-                { 'kind': 'block', 'type': 'math_trig' },
-                { 'kind': 'block', 'type': 'math_constant' },
-                { 'kind': 'block', 'type': 'math_number_property' },
-                { 'kind': 'block', 'type': 'math_round' },
-                { 'kind': 'block', 'type': 'math_modulo' },
-                {
-                    'kind': 'block',
-                    'type': 'math_map',
-                    'inputs': {
-                        'FROM_LOW': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'FROM_HIGH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 127 } } },
-                        'TO_LOW': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'TO_HIGH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'math_constrain',
-                    'inputs': {
-                        'LOW': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'HIGH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                }
-            ]
-        },
+    <!-- 4. Math -->
+    <category name="%{BKY_CAT_MATH}" colour="%{BKY_MATH_HUE}">
+        <block type="math_number"></block>
+        <block type="math_arithmetic">
+            <value name="A">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="B">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="math_single"></block>
+        <block type="math_trig"></block>
+        <block type="math_constant"></block>
+        <block type="math_number_property"></block>
+        <block type="math_round"></block>
+        <block type="math_modulo"></block>
+        <block type="math_map">
+            <value name="FROM_LOW">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="FROM_HIGH">
+                <shadow type="math_number">
+                    <field name="NUM">127</field>
+                </shadow>
+            </value>
+            <value name="TO_LOW">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="TO_HIGH">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="math_constrain">
+            <value name="LOW">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="HIGH">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+    </category>
 
-        // 5. Text
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_TEXT}',
-            'colour': '%{BKY_TEXT_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'text' },
-                { 'kind': 'block', 'type': 'text_join' },
-                {
-                    'kind': 'block',
-                    'type': 'text_append',
-                    'inputs': { 'TEXT': { 'shadow': { 'type': 'text' } } }
-                },
-                { 'kind': 'block', 'type': 'text_length' },
-                { 'kind': 'block', 'type': 'text_isEmpty' },
-                { 'kind': 'block', 'type': 'text_charAt' },
-                { 'kind': 'block', 'type': 'text_print' }
-            ]
-        },
+    <!-- 5. Text -->
+    <category name="%{BKY_CAT_TEXT}" colour="%{BKY_TEXT_HUE}">
+        <block type="text"></block>
+        <block type="text_join"></block>
+        <block type="text_append">
+            <value name="TEXT">
+                <shadow type="text"></shadow>
+            </value>
+        </block>
+        <block type="text_length"></block>
+        <block type="text_isEmpty"></block>
+        <block type="text_charAt"></block>
+        <block type="text_print"></block>
+    </category>
 
-        // 6. Lists
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_LISTS}',
-            'colour': '%{BKY_LISTS_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'lists_create_empty' },
-                { 'kind': 'block', 'type': 'lists_create_with' },
-                { 'kind': 'block', 'type': 'lists_length' },
-                { 'kind': 'block', 'type': 'lists_isEmpty' },
-                { 'kind': 'block', 'type': 'lists_getIndex' },
-                { 'kind': 'block', 'type': 'lists_setIndex' },
-                {
-                    'kind': 'block',
-                    'type': 'lists_split',
-                    'inputs': { 'DELIM': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': ',' } } } }
-                }
-            ]
-        },
+    <!-- 6. Lists -->
+    <category name="%{BKY_CAT_LISTS}" colour="%{BKY_LISTS_HUE}">
+        <block type="lists_create_empty"></block>
+        <block type="lists_create_with"></block>
+        <block type="lists_length"></block>
+        <block type="lists_isEmpty"></block>
+        <block type="lists_getIndex"></block>
+        <block type="lists_setIndex"></block>
+        <block type="lists_split">
+            <value name="DELIM">
+                <shadow type="text">
+                    <field name="TEXT">,</field>
+                </shadow>
+            </value>
+        </block>
+    </category>
 
-        { 'kind': 'sep' },
+    <sep></sep>
 
-        // 7. Variables & Functions & Tools
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_VARIABLES}',
-            'colour': '%{BKY_VARIABLES_HUE}',
-            'custom': 'VARIABLE'
-        },
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_FUNCTIONS}',
-            'colour': '%{BKY_FUNCTIONS_HUE}',
-            'custom': 'PROCEDURE'
-        },
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_TOOLS}',
-            'colour': '%{BKY_TOOLS_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'sb_comment' }
-            ]
-        },
+    <!-- 7. Variables , Functions & Tools-->
+    <category name="%{BKY_CAT_VARIABLES}" colour="%{BKY_VARIABLES_HUE}" custom="VARIABLE"></category>
+    <category name="%{BKY_CAT_FUNCTIONS}" colour="%{BKY_FUNCTIONS_HUE}" custom="PROCEDURE"></category>
+    <category name="%{BKY_CAT_TOOLS}" colour="%{BKY_TOOLS_HUE}">
+        <block type="sb_comment"></block>
+    </category>
 
-        { 'kind': 'sep' },
+    <sep></sep>
 
-        // 8. Live Show (Management)
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_LIVE_SHOW}',
-            'colour': '%{BKY_LIVE_SHOW_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'visual_stage_setup' },
-                {
-                    'kind': 'block',
-                    'type': 'visual_stage_set_color',
-                    'inputs': { 'COLOR': { 'shadow': { 'type': 'visual_color_picker' } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'live_set_param',
-                    'inputs': { 'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } } }
-                },
-                { 'kind': 'block', 'type': 'live_get_param' },
-                {
-                    'kind': 'block',
-                    'type': 'sb_log_to_screen',
-                    'inputs': { 'MSG': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': 'Hello' } } } }
-                }
-            ]
-        },
+    <!-- 8. Live Show (Management) -->
+    <category name="%{BKY_CAT_LIVE_SHOW}" colour="%{BKY_LIVE_SHOW_HUE}">
+        <block type="visual_stage_setup"></block>
+        <block type="visual_stage_set_color">
+            <value name="COLOR">
+                <shadow type="visual_color_picker"></shadow>
+            </value>
+        </block>
+        <block type="live_set_param">
+            <value name="VALUE">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="live_get_param"></block>
+        <block type="sb_log_to_screen">
+            <value name="MSG">
+                <shadow type="text">
+                    <field name="TEXT">Hello</field>
+                </shadow>
+            </value>
+        </block>
+    </category>
 
-        // 9. Sound Sources
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_SOUND_SOURCES}',
-            'colour': '%{BKY_SOUND_SOURCES_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'sb_minim_init' },
-                { 'kind': 'block', 'type': 'sb_instrument_container' },
-                { 'kind': 'block', 'type': 'sb_set_wave' },
-                { 'kind': 'block', 'type': 'sb_set_noise' },
-                {
-                    'kind': 'block',
-                    'type': 'sb_mixed_source',
-                    'inputs': { 'LEVEL': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 30 } } } }
-                },
-                { 'kind': 'block', 'type': 'sb_create_harmonic_synth' },
-                { 'kind': 'block', 'type': 'sb_create_additive_synth' },
-                { 'kind': 'block', 'type': 'sb_melodic_sampler' },
-                { 'kind': 'block', 'type': 'sb_drum_sampler' }
-            ]
-        },
+    <!-- 9. Sound Sources -->
+    <category name="%{BKY_CAT_SOUND_SOURCES}" colour="%{BKY_SOUND_SOURCES_HUE}">
+        <block type="sb_minim_init"></block>
+        <block type="sb_instrument_container"></block>
+        <block type="sb_set_wave"></block>
+        <block type="sb_set_noise"></block>
+        <block type="sb_mixed_source">
+            <value name="LEVEL">
+                <shadow type="math_number">
+                    <field name="NUM">30</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_create_harmonic_synth"></block>
+        <block type="sb_create_additive_synth"></block>
+        <block type="sb_melodic_sampler"></block>
+        <block type="sb_drum_sampler"></block>
+    </category>
 
-        // 10. Instrument Control
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_INSTRUMENT_CONTROL}',
-            'colour': '%{BKY_INSTRUMENT_CONTROL_HUE}',
-            'contents': [
-                {
-                    'kind': 'block',
-                    'type': 'sb_set_panning',
-                    'inputs': { 'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_set_instrument_volume',
-                    'inputs': { 'VOLUME': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_set_adsr',
-                    'inputs': {
-                        'A': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.01 } } },
-                        'D': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.1 } } },
-                        'S': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.5 } } },
-                        'R': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.5 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_update_adsr',
-                    'inputs': {
-                        'A': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.01 } } },
-                        'D': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.1 } } },
-                        'S': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.5 } } },
-                        'R': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0.5 } } }
-                    }
-                }
-            ]
-        },
+    <!-- 10. Instrument Control -->
+    <category name="%{BKY_CAT_INSTRUMENT_CONTROL}" colour="%{BKY_INSTRUMENT_CONTROL_HUE}">
+        <block type="sb_set_panning">
+            <value name="VALUE">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_set_instrument_volume">
+            <value name="VOLUME">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_set_adsr">
+            <value name="A">
+                <shadow type="math_number">
+                    <field name="NUM">0.01</field>
+                </shadow>
+            </value>
+            <value name="D">
+                <shadow type="math_number">
+                    <field name="NUM">0.1</field>
+                </shadow>
+            </value>
+            <value name="S">
+                <shadow type="math_number">
+                    <field name="NUM">0.5</field>
+                </shadow>
+            </value>
+            <value name="R">
+                <shadow type="math_number">
+                    <field name="NUM">0.5</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_update_adsr">
+            <value name="A">
+                <shadow type="math_number">
+                    <field name="NUM">0.01</field>
+                </shadow>
+            </value>
+            <value name="D">
+                <shadow type="math_number">
+                    <field name="NUM">0.1</field>
+                </shadow>
+            </value>
+            <value name="S">
+                <shadow type="math_number">
+                    <field name="NUM">0.5</field>
+                </shadow>
+            </value>
+            <value name="R">
+                <shadow type="math_number">
+                    <field name="NUM">0.5</field>
+                </shadow>
+            </value>
+        </block>
+    </category>
 
-        // 11. Audio Effects
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_EFFECTS}',
-            'colour': '%{BKY_EFFECTS_HUE}',
-            'contents': [
-                {
-                    'kind': 'block',
-                    'type': 'sb_setup_effect',
-                    'extraState': '<mutation effect_type="filter"></mutation>',
-                    'fields': { 'EFFECT_TYPE': 'filter' },
-                    'inputs': {
-                        'FILTER_FREQ': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1000 } } },
-                        'FILTER_Q': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_set_effect_param',
-                    'extraState': '<mutation effect_type="panning"></mutation>',
-                    'fields': { 'EFFECT_TYPE': 'panning' },
-                    'inputs': { 'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } } }
-                }
-            ]
-        },
+    <!-- 11. Audio Effects -->
+    <category name="%{BKY_CAT_EFFECTS}" colour="%{BKY_EFFECTS_HUE}">
+        <block type="sb_setup_effect">
+            <mutation effect_type="filter"></mutation>
+            <field name="EFFECT_TYPE">filter</field>
+            <value name="FILTER_FREQ">
+                <shadow type="math_number">
+                    <field name="NUM">1000</field>
+                </shadow>
+            </value>
+            <value name="FILTER_Q">
+                <shadow type="math_number">
+                    <field name="NUM">0.5</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_set_effect_param">
+            <mutation effect_type="panning"></mutation>
+            <field name="EFFECT_TYPE">panning</field>
+            <value name="VALUE">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+    </category>
 
-        // 12. Performance
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_PERFORMANCE}',
-            'colour': '%{BKY_PERFORMANCE_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'sb_select_current_instrument' },
-                {
-                    'kind': 'block',
-                    'type': 'sb_transport_set_bpm',
-                    'inputs': { 'BPM': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 120 } } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_transport_count_in',
-                    'inputs': {
-                        'MEASURES': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
-                        'BEATS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
-                        'BEAT_UNIT': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } },
-                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                { 'kind': 'block', 'type': 'sb_define_chord' },
-                {
-                    'kind': 'block',
-                    'type': 'sb_play_note',
-                    'inputs': {
-                        'PITCH': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': '60' } } },
-                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_stop_note',
-                    'inputs': { 'PITCH': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': '60' } } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_trigger_sample',
-                    'inputs': { 'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_play_drum',
-                    'inputs': { 'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } } }
-                },
-                { 'kind': 'block', 'type': 'sb_play_melody' },
-                {
-                    'kind': 'block',
-                    'type': 'sb_play_chord_by_name',
-                    'inputs': {
-                        'DUR': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': '4n' } } },
-                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                { 'kind': 'block', 'type': 'sb_audio_is_playing' },
-                { 'kind': 'block', 'type': 'sb_wait_until_finished' },
-                {
-                    'kind': 'block',
-                    'type': 'sb_wait_musical',
-                    'inputs': { 'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } } }
-                },
-                { 'kind': 'block', 'type': 'sb_tone_loop' },
-                { 'kind': 'block', 'type': 'sb_perform' },
-                {
-                    'kind': 'block',
-                    'type': 'sb_rhythm_sequence',
-                    'inputs': {
-                        'MEASURE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } },
-                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_musical_section',
-                    'inputs': { 'DURATION': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 4 } } } }
-                },
-                { 'kind': 'block', 'type': 'sb_rhythm_sequencer_v2' }
-            ]
-        },
+    <!-- 12. Performance -->
+    <category name="%{BKY_CAT_PERFORMANCE}" colour="%{BKY_PERFORMANCE_HUE}">
+        <!-- 選擇樂器 -->
+        <block type="sb_select_current_instrument"></block>
+        <!-- 設定速度 -->
+        <block type="sb_transport_set_bpm">
+            <value name="BPM">
+                <shadow type="math_number">
+                    <field name="NUM">120</field>
+                </shadow>
+            </value>
+        </block>
+        <!-- 預備拍 -->
+        <block type="sb_transport_count_in">
+            <value name="MEASURES">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="BEATS">
+                <shadow type="math_number">
+                    <field name="NUM">4</field>
+                </shadow>
+            </value>
+            <value name="BEAT_UNIT">
+                <shadow type="math_number">
+                    <field name="NUM">4</field>
+                </shadow>
+            </value>
+            <value name="VELOCITY">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <!-- 定義和弦 -->
+        <block type="sb_define_chord"></block>
+        <!-- 演奏持續音 (MIDI) -->
+        <block type="sb_play_note">
+            <value name="PITCH">
+                <shadow type="text">
+                    <field name="TEXT">60</field>
+                </shadow>
+            </value>
+            <value name="VELOCITY">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <!-- 停止持續音 (MIDI) -->
+        <block type="sb_stop_note">
+            <value name="PITCH">
+                <shadow type="text">
+                    <field name="TEXT">60</field>
+                </shadow>
+            </value>
+        </block>
+        <!-- 演奏單音 -->
+        <block type="sb_trigger_sample">
+            <value name="VELOCITY">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <!-- 演奏電子鼓 -->
+        <block type="sb_play_drum">
+            <value name="VELOCITY">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <!-- 播放旋律 -->
+        <block type="sb_play_melody"></block>
+        <!-- 演奏和弦 -->
+        <block type="sb_play_chord_by_name">
+            <value name="DUR">
+                <shadow type="text">
+                    <field name="TEXT">4n</field>
+                </shadow>
+            </value>
+            <value name="VELOCITY">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_audio_is_playing"></block>
+        <block type="sb_wait_until_finished"></block>
+        <block type="sb_wait_musical">
+            <value name="VALUE">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_tone_loop"></block>
+        <block type="sb_perform"></block>
+        <block type="sb_rhythm_sequence">
+            <value name="MEASURE">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+            <value name="VELOCITY">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_musical_section">
+            <value name="DURATION">
+                <shadow type="math_number">
+                    <field name="NUM">4</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_rhythm_sequencer_v2"></block>
+    </category>
 
-        { 'kind': 'sep' },
+    <sep></sep>
 
-        // 13. Visuals (Drawing)
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_VISUAL}',
-            'colour': '%{BKY_VISUAL_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'visual_color_picker' },
-                { 'kind': 'block', 'type': 'processing_frame_count' },
-                {
-                    'kind': 'block',
-                    'type': 'visual_frame_rate',
-                    'inputs': { 'FPS': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 60 } } } }
-                },
-                { 'kind': 'block', 'type': 'visual_size' },
-                { 'kind': 'block', 'type': 'visual_pixel_density' },
-                { 'kind': 'block', 'type': 'visual_constant' },
+    <!-- 12. Visuals (Drawing) -->
+    <category name="%{BKY_CAT_VISUAL}" colour="%{BKY_VISUAL_HUE}">
+        <block type="visual_color_picker"></block>
+        <block type="processing_frame_count"></block>
+        <block type="visual_frame_rate">
+            <value name="FPS">
+                <shadow type="math_number">
+                    <field name="NUM">60</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="visual_size"></block>
+        <block type="visual_pixel_density"></block>
+        <block type="visual_constant"></block>
 
-                { 'kind': 'sep', 'gap': 32 },
+        <sep gap="32"></sep>
 
-                {
-                    'kind': 'block',
-                    'type': 'visual_background',
-                    'inputs': { 'COLOR': { 'shadow': { 'type': 'visual_color_picker' } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'visual_fill',
-                    'inputs': { 'COLOR': { 'shadow': { 'type': 'visual_color_picker' } } }
-                },
-                { 'kind': 'block', 'type': 'visual_no_fill' },
-                {
-                    'kind': 'block',
-                    'type': 'visual_stroke',
-                    'inputs': { 'COLOR': { 'shadow': { 'type': 'visual_color_picker' } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'visual_stroke_weight',
-                    'inputs': { 'WEIGHT': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1 } } } }
-                },
-                { 'kind': 'block', 'type': 'visual_no_stroke' },
+        <block type="visual_background">
+            <value name="COLOR">
+                <shadow type="visual_color_picker"></shadow>
+            </value>
+        </block>
+        <block type="visual_fill">
+            <value name="COLOR">
+                <shadow type="visual_color_picker"></shadow>
+            </value>
+        </block>
+        <block type="visual_no_fill"></block>
+        <block type="visual_stroke">
+            <value name="COLOR">
+                <shadow type="visual_color_picker"></shadow>
+            </value>
+        </block>
+        <block type="visual_stroke_weight">
+            <value name="WEIGHT">
+                <shadow type="math_number">
+                    <field name="NUM">1</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="visual_no_stroke"></block>
 
-                { 'kind': 'sep', 'gap': 32 },
+        <sep gap="32"></sep>
 
-                {
-                    'kind': 'block',
-                    'type': 'visual_rect',
-                    'inputs': {
-                        'X': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'Y': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'W': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } },
-                        'H': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'visual_ellipse',
-                    'inputs': {
-                        'X': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 50 } } },
-                        'Y': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 50 } } },
-                        'W': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 80 } } },
-                        'H': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 80 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'visual_line',
-                    'inputs': {
-                        'X1': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'Y1': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'X2': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } },
-                        'Y2': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'visual_triangle',
-                    'inputs': {
-                        'X1': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 50 } } },
-                        'Y1': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'X2': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'Y2': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } },
-                        'X3': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } },
-                        'Y3': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
+        <block type="visual_rect">
+            <value name="X">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="Y">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="W">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+            <value name="H">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="visual_ellipse">
+            <value name="X">
+                <shadow type="math_number">
+                    <field name="NUM">50</field>
+                </shadow>
+            </value>
+            <value name="Y">
+                <shadow type="math_number">
+                    <field name="NUM">50</field>
+                </shadow>
+            </value>
+            <value name="W">
+                <shadow type="math_number">
+                    <field name="NUM">80</field>
+                </shadow>
+            </value>
+            <value name="H">
+                <shadow type="math_number">
+                    <field name="NUM">80</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="visual_line">
+            <value name="X1">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="Y1">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="X2">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+            <value name="Y2">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="visual_triangle">
+            <value name="X1">
+                <shadow type="math_number">
+                    <field name="NUM">50</field>
+                </shadow>
+            </value>
+            <value name="Y1">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="X2">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="Y2">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+            <value name="X3">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+            <value name="Y3">
+                <shadow type="math_number">
+                    <field name="NUM">100</field>
+                </shadow>
+            </value>
+        </block>
 
-                { 'kind': 'sep', 'gap': 32 },
+        <sep gap="32"></sep>
 
-                {
-                    'kind': 'block',
-                    'type': 'visual_translate',
-                    'inputs': {
-                        'X': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'Y': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'visual_rotate',
-                    'inputs': { 'ANGLE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 45 } } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'visual_scale',
-                    'inputs': { 'S': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 1.0 } } } }
-                },
-                { 'kind': 'block', 'type': 'visual_push_pop' }
-            ]
-        },
+        <block type="visual_translate">
+            <value name="X">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+            <value name="Y">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="visual_rotate">
+            <value name="ANGLE">
+                <shadow type="math_number">
+                    <field name="NUM">45</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="visual_scale">
+            <value name="S">
+                <shadow type="math_number">
+                    <field name="NUM">1.0</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="visual_push_pop"></block>
+    </category>
 
-        // 14. Serial (Arduino)
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_SERIAL}',
-            'colour': '%{BKY_SERIAL_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'sb_serial_data_received' },
-                { 'kind': 'block', 'type': 'serial_init' },
-                { 'kind': 'block', 'type': 'serial_available' },
-                { 'kind': 'block', 'type': 'serial_read_string' },
-                {
-                    'kind': 'block',
-                    'type': 'sb_serial_write',
-                    'inputs': { 'CONTENT': { 'shadow': { 'type': 'text', 'fields': { 'TEXT': 'A' } } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'serial_check_mask',
-                    'inputs': { 'MASK': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } } }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'sb_serial_check_key_mask',
-                    'inputs': { 'DATA': { 'shadow': { 'type': 'variables_get', 'fields': { 'VAR': 'serial_data' } } } }
-                }
-            ]
-        },
+    <!-- 13. Serial (Arduino) -->
+    <category name="%{BKY_CAT_SERIAL}" colour="%{BKY_SERIAL_HUE}">
+        <block type="sb_serial_data_received"></block>
+        <block type="serial_init"></block>
+        <block type="serial_available"></block>
+        <block type="serial_read_string"></block>
+        <block type="sb_serial_write">
+            <value name="CONTENT">
+                <shadow type="text">
+                    <field name="TEXT">A</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="serial_check_mask">
+            <value name="MASK">
+                <shadow type="math_number">
+                    <field name="NUM">0</field>
+                </shadow>
+            </value>
+        </block>
+        <block type="sb_serial_check_key_mask">
+            <value name="DATA">
+                <shadow type="variables_get">
+                    <field name="VAR">serial_data</field>
+                </shadow>
+            </value>
+        </block>
+    </category>
 
-        // 15. MIDI & PC Key
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_PC_KEY}',
-            'colour': '%{BKY_PC_KEY_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'ui_key_event' }
-            ]
-        },
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_MIDI}',
-            'colour': '%{BKY_MIDI_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'midi_init' },
-                { 'kind': 'block', 'type': 'midi_on_note' },
-                { 'kind': 'block', 'type': 'midi_off_note' },
-                { 'kind': 'block', 'type': 'midi_on_controller_change' },
-                { 'kind': 'sep', 'gap': 32 },
-                {
-                    'kind': 'block',
-                    'type': 'midi_send_note',
-                    'inputs': {
-                        'CHANNEL': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'PITCH': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 60 } } },
-                        'VELOCITY': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 100 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'midi_send_cc',
-                    'inputs': {
-                        'CHANNEL': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'NUMBER': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'VALUE': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 127 } } }
-                    }
-                },
-                {
-                    'kind': 'block',
-                    'type': 'midi_lp_xy_to_note',
-                    'inputs': {
-                        'X': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } },
-                        'Y': { 'shadow': { 'type': 'math_number', 'fields': { 'NUM': 0 } } }
-                    }
-                }
-            ]
-        },
+    <!-- 14. MIDI -->
+    <category name="%{BKY_CAT_PC_KEY}" colour="%{BKY_PC_KEY_HUE}">
+        <block type="ui_key_event"></block>
+    </category>
 
-        // 16. UI Control
-        {
-            'kind': 'category',
-            'name': '%{BKY_CAT_UI}',
-            'colour': '%{BKY_UI_HUE}',
-            'contents': [
-                { 'kind': 'block', 'type': 'ui_init' },
-                { 'kind': 'block', 'type': 'ui_add_slider' },
-                { 'kind': 'block', 'type': 'ui_add_toggle' }
-            ]
-        }
-    ]
-};
+    <category name="%{BKY_CAT_MIDI}" colour="%{BKY_MIDI_HUE}">
+        <block type="midi_init"></block>
+        <block type="midi_on_note"></block>
+        <block type="midi_off_note"></block>
+        <block type="midi_on_controller_change"></block>
+        <sep gap="32"></sep>
+        <block type="midi_send_note">
+            <value name="CHANNEL">
+                <shadow type="math_number"><field name="NUM">0</field></shadow>
+            </value>
+            <value name="PITCH">
+                <shadow type="math_number"><field name="NUM">60</field></shadow>
+            </value>
+            <value name="VELOCITY">
+                <shadow type="math_number"><field name="NUM">100</field></shadow>
+            </value>
+        </block>
+        <block type="midi_send_cc">
+            <value name="CHANNEL">
+                <shadow type="math_number"><field name="NUM">0</field></shadow>
+            </value>
+            <value name="NUMBER">
+                <shadow type="math_number"><field name="NUM">0</field></shadow>
+            </value>
+            <value name="VALUE">
+                <shadow type="math_number"><field name="NUM">127</field></shadow>
+            </value>
+        </block>
+        <block type="midi_lp_xy_to_note">
+            <value name="X">
+                <shadow type="math_number"><field name="NUM">0</field></shadow>
+            </value>
+            <value name="Y">
+                <shadow type="math_number"><field name="NUM">0</field></shadow>
+            </value>
+        </block>
+    </category>
+
+    <!-- 15. UI Control -->
+    <category name="%{BKY_CAT_UI}" colour="%{BKY_UI_HUE}">
+        <block type="ui_init"></block>
+        <block type="ui_add_slider"></block>
+        <block type="ui_add_toggle"></block>
+    </category>
+    <category name="　" colour="#050505" disabled="true"></category>
+    <category name="　" colour="#050505" disabled="true"></category>
+    <category name="　" colour="#050505" disabled="true"></category>
+</xml>
+`;

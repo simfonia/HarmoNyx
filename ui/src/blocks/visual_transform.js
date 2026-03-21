@@ -4,22 +4,10 @@
  */
 
 /**
- * Visual Transform Blocks: Translate, Rotate, Scale, Push/Pop.
+ * Visual Transform Blocks: Rotate, Translate, Scale, and Matrix isolation.
  */
 
 Blockly.defineBlocksWithJsonArray([
-  {
-    "type": "visual_translate",
-    "message0": "%{BKY_VISUAL_TRANSLATE}",
-    "args0": [
-      { "type": "input_value", "name": "X", "check": "Number" },
-      { "type": "input_value", "name": "Y", "check": "Number" }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": "%{BKY_VISUAL_HUE}",
-    "tooltip": "%{BKY_VISUAL_TRANSLATE_TOOLTIP}"
-  },
   {
     "type": "visual_rotate",
     "message0": "%{BKY_VISUAL_ROTATE}",
@@ -28,8 +16,31 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_VISUAL_HUE}",
+    "colour": "#3498DB",
     "tooltip": "%{BKY_VISUAL_ROTATE_TOOLTIP}"
+  },
+  {
+    "type": "visual_translate",
+    "message0": "%{BKY_VISUAL_TRANSLATE}",
+    "args0": [
+      { "type": "input_value", "name": "X" },
+      { "type": "input_value", "name": "Y" }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "#3498DB",
+    "tooltip": "%{BKY_VISUAL_TRANSLATE_TOOLTIP}"
+  },
+  {
+    "type": "visual_push_pop",
+    "message0": "%{BKY_VISUAL_PUSH_POP}",
+    "args0": [
+      { "type": "input_statement", "name": "STACK" }
+    ],
+    "previousStatement": null,
+    "nextStatement": null,
+    "colour": "#3498DB",
+    "tooltip": "%{BKY_VISUAL_PUSH_POP_TOOLTIP}"
   },
   {
     "type": "visual_scale",
@@ -39,18 +50,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "previousStatement": null,
     "nextStatement": null,
-    "colour": "%{BKY_VISUAL_HUE}",
+    "colour": "#3498DB",
     "tooltip": "%{BKY_VISUAL_SCALE_TOOLTIP}"
-  },
-  {
-    "type": "visual_push_pop",
-    "message0": "%{BKY_VISUAL_PUSH_POP}",
-    "args0": [
-      { "type": "input_statement", "name": "DO" }
-    ],
-    "previousStatement": null,
-    "nextStatement": null,
-    "colour": "%{BKY_VISUAL_HUE}",
-    "tooltip": "%{BKY_VISUAL_PUSH_POP_TOOLTIP}"
   }
 ]);
