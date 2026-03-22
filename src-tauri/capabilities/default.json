@@ -15,6 +15,7 @@
     "dialog:allow-message",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
-    "log:default"
+    "log:default",
+    "shell:allow-open"
   ]
 }

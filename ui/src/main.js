@@ -45,10 +45,22 @@ import './generators/functions.js';
 
 import { HarmoNyxAPI } from './modules/api.js';
 import { WaveCodeToolbox } from './modules/toolbox.js';
+import { Updater } from './modules/updater.js';
 
 UIUtils.injectNaNShield();
 const stageUI = UIUtils.initStagePanel();
 const invoke = HarmoNyxAPI.getInvoke();
+
+// --- 0. 執行更新檢查 ---
+// 從 Tauri 獲取當前版本動態檢查
+setTimeout(async () => {
+    try {
+        const version = await window.__TAURI__.app.getVersion();
+        Updater.check(version);
+    } catch (e) {
+        console.error('Failed to get version:', e);
+    }
+}, 1000);
 
 // --- 1. 註冊 Blockly 插件與 Polyfill ---
 if (window.FieldMultilineInput) {
