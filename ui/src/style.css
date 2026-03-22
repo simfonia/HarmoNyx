@@ -20,7 +20,13 @@ body { font-family: 'Inter', sans-serif; color: var(--nyx-text); }
 /* Header & Toolbar */
 header { height: 50px; background-color: var(--nyx-header-bg); display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid var(--nyx-border); flex-shrink: 0; z-index: 2500; box-shadow: 0 2px 10px rgba(0,0,0,0.5); position: relative; }
 .header-left { display: flex; align-items: center; gap: 10px; width: 180px; }
-.app-logo { width: 24px; height: 24px; filter: drop-shadow(0 0 5px var(--nyx-purple)); }
+.app-logo { 
+    width: 24px; 
+    height: 24px; 
+    object-fit: contain;
+    background-color: transparent !important;
+    filter: drop-shadow(0 0 5px var(--nyx-purple)); 
+}
 h1 { font-size: 16px; margin: 0; color: var(--nyx-purple); font-weight: 600; letter-spacing: 1px; }
 
 .file-status-container { display: flex; align-items: center; background-color: rgba(0, 0, 0, 0.3); padding: 4px 12px; border-radius: 20px; margin: 0 15px; border: 1px solid var(--nyx-border); font-size: 13px; color: var(--nyx-text-dim); }
@@ -113,3 +119,172 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
 .blocklyShadowBlock > .blocklyPath { fill-opacity: 0.5 !important; }
 .blocklyFieldRect { fill-opacity: 0.6 !important; stroke: rgba(0,0,0,0.2) !important; }
 .blocklyHtmlInput { color: #1a1a1a !important; background-color: #ffffff !important; }
+
+/* --- Smart Panel Styles --- */
+
+/* Parent container for sections */
+#stage-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Tabs Section (Top, expands) */
+#smart-tabs-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0; /* Important for scrolling */
+    overflow: hidden;
+}
+
+/* Log Section (Bottom, fixed height for now) */
+#log-section {
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--nyx-border);
+    flex-shrink: 0;
+}
+
+/* Common Section Content Wrapper */
+.section-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    background-color: #050505;
+}
+
+/* Tabs Header */
+.smart-tabs-header {
+    display: flex;
+    background-color: var(--nyx-bg-panel);
+    border-bottom: 1px solid var(--nyx-border);
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.tab-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--nyx-text-dim);
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    user-select: none;
+}
+
+.tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--nyx-text);
+}
+
+.tab-btn.active {
+    color: var(--nyx-text);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-bottom-color: var(--nyx-purple);
+}
+
+.tab-btn img {
+    width: 18px;
+    height: 18px;
+    opacity: 0.7;
+}
+
+.tab-btn.active img {
+    opacity: 1;
+    filter: brightness(1.2);
+}
+
+/* Tabs Body */
+.smart-tabs-body {
+    flex: 1;
+    position: relative;
+    background-color: var(--nyx-bg-dark);
+    overflow: hidden;
+}
+
+.tab-pane {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0;
+    display: none;
+    background-color: #141417;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Visual Help Styles */
+.help-placeholder {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--nyx-text-dim);
+    text-align: center;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+#block-help-content {
+    padding: 15px;
+}
+
+#help-title {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: var(--nyx-purple);
+    font-size: 16px;
+    border-bottom: 1px solid var(--nyx-border);
+    padding-bottom: 5px;
+}
+
+#help-desc {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--nyx-text);
+}
+
+#help-preview {
+    margin: 15px 0;
+    padding: 10px;
+    background-color: #000;
+    border: 1px solid var(--nyx-border);
+    border-radius: 4px;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Live Code Styles */
+#live-code pre {
+    margin: 0;
+    padding: 10px;
+    font-family: 'Fira Code', Consolas, monospace;
+    font-size: 12px;
+    color: #e0e0e0;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #1e1e24; }
+::-webkit-scrollbar-thumb { background: #3d3d45; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #555; }
+

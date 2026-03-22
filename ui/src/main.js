@@ -81,6 +81,11 @@ class CustomFieldColour extends Blockly.FieldTextInput {
 Blockly.fieldRegistry.register('field_colour', CustomFieldColour);
 
 // --- 2. 初始化 Blockly 工作區 ---
+// Scroll Options Plugin 準備
+const ScrollOptionsPlugin = window.ScrollOptions || (window.ScrollOptionsPlugin && window.ScrollOptionsPlugin.ScrollOptions);
+const scrollDragger = window.ScrollBlockDragger || (ScrollOptionsPlugin ? ScrollOptionsPlugin.ScrollBlockDragger : undefined);
+const scrollMetrics = window.ScrollMetricsManager || (ScrollOptionsPlugin ? ScrollOptionsPlugin.ScrollMetricsManager : undefined);
+
 const harmoNyxTheme = Blockly.Theme.defineTheme('harmonyx_theme', {
     'base': Blockly.Themes.Classic,
     'blockStyles': { 
@@ -100,12 +105,38 @@ const workspace = Blockly.inject(blocklyDiv, {
     zoom: { controls: true, wheel: true, startScale: 1.0 },
     move: { scrollbars: true, drag: true, wheel: true },
     theme: harmoNyxTheme,
-    renderer: 'geras'
+    renderer: 'geras',
+    plugins: {
+        'blockDragger': scrollDragger,
+        'metricsManager': scrollMetrics
+    }
 });
+
+// 初始化 Scroll Options 參數
+if (ScrollOptionsPlugin) {
+    try {
+        const scrollOptions = new ScrollOptionsPlugin(workspace);
+        scrollOptions.init({
+            enableWheelScroll: true,
+            enableEdgeScroll: true,
+            edgeScrollOptions: {
+                slowBlockSpeed: 0.15,
+                fastBlockSpeed: 0.5,
+                slowMouseSpeed: 0.25,
+                fastMouseSpeed: 1.0,
+                fastBlockStartDistance: 80,
+                fastMouseStartDistance: 60
+            }
+        });
+    } catch (e) {
+        console.error('ScrollOptions init failed:', e);
+    }
+}
 
 // --- 3. 核心功能與狀態管理 ---
 let isDirty = false;
 let currentFilename = '';
+let isProcessing = false; // 新增：追蹤目前是否正在執行 Processing
 
 function setDirty(dirty) {
     if (workspace.isClearing && dirty) return;
@@ -125,12 +156,70 @@ async function checkUnsavedChanges() {
     return await ask('專案尚未儲存，確定要離開嗎？', { title: '警告', kind: 'warning' });
 }
 
+const DEFAULT_XML = `
+<xml xmlns="https://developers.google.com/blockly/xml">
+  <block type="processing_setup" id="cc!|M-@Vrq8_yvb2E$Hr" x="30" y="30">
+    <statement name="DO">
+      <block type="sb_minim_init" id="V|?S!Uck7cLNH-}pS[nJ">
+        <next>
+          <block type="visual_stage_setup" id="init_stage">
+            <field name="W">1200</field>
+            <field name="H">400</field>
+            <field name="BG_COLOR">#000000</field>
+            <field name="FG_COLOR">#fe2f89</field>
+            <next>
+              <block type="serial_init" id="init_ser">
+                <field name="INDEX">0</field>
+                <field name="BAUD">115200</field>
+                <next>
+                  <block type="sb_select_current_instrument" id="Ewrs?L@}424Xd-6Pi.9%">
+                    <field name="NAME">MySynth</field>
+                    <next>
+                      <block type="sb_transport_set_bpm" id="2itX?tZ4g\`%KzHEbEK[-">
+                        <value name="BPM">
+                          <shadow type="math_number" id="4#Qw]2/~!jj!]1Q~P.A.">
+                            <field name="NUM">120</field>
+                          </shadow>
+                        </value>
+                      </block>
+                    </next>
+                  </block>
+                </next>
+              </block>
+            </next>
+          </block>
+        </next>
+      </block>
+    </statement>
+  </block>
+  <block type="sb_instrument_container" id="?IrjDlT{CuGc-;}sQao9" x="490" y="30">
+    <field name="NAME">MySynth</field>
+    <statement name="STACK">
+      <block type="sb_set_wave" id="+8e5SwS[#A1-933L~D^4">
+        <field name="TYPE">TRIANGLE</field>
+      </block>
+    </statement>
+  </block>
+  <block type="processing_draw" id="default_draw" x="30" y="350"></block>
+</xml>`.trim();
+
 function createDefaultBlocks() {
     workspace.isClearing = true; workspace.clear();
     setTimeout(() => {
-        const setup = workspace.newBlock('processing_setup'); setup.initSvg(); setup.render(); setup.moveBy(20, 20);
-        const draw = workspace.newBlock('processing_draw'); draw.initSvg(); draw.render(); draw.moveBy(20, 120);
-        setTimeout(() => { workspace.isClearing = false; setDirty(false); }, 100);
+        try {
+            const dom = Blockly.utils.xml.textToDom(DEFAULT_XML);
+            Blockly.Xml.domToWorkspace(dom, workspace);
+        } catch (e) {
+            console.error('Failed to load default blocks:', e);
+            // Fallback
+            const setup = workspace.newBlock('processing_setup'); setup.initSvg(); setup.render(); setup.moveBy(20, 20);
+            const draw = workspace.newBlock('processing_draw'); draw.initSvg(); draw.render(); draw.moveBy(20, 350);
+        }
+        setTimeout(() => { 
+            workspace.isClearing = false; 
+            setDirty(false); 
+            debouncedUpdateLiveCode();
+        }, 100);
     }, 50);
 }
 
@@ -141,8 +230,34 @@ const xmlUtils = {
 };
 
 if (window.__TAURI__ && window.__TAURI__.event) {
-    window.__TAURI__.event.listen('processing-log', (e) => stageUI.appendLog(e.payload, 'info'));
-    window.__TAURI__.event.listen('processing-error', (e) => stageUI.appendLog(e.payload, 'error'));
+    let recentHeader = false;
+    window.__TAURI__.event.listen('processing-log', (e) => {
+        if (!isProcessing) return;
+        const msg = e.payload.trim();
+        if (!msg) { recentHeader = false; return; }
+
+        // 篩選條件：僅顯示開發與除錯相關訊息
+        const isTagged = msg.startsWith('[USER]') || msg.startsWith('[DEV]') || msg.startsWith('[MSG]') || msg.startsWith('[WARN]') || msg.startsWith('[ERR]') || msg.startsWith('[!]');
+        // 注意：[INFO] 已被排除在顯示之外，因為超級舞台已有顯示
+        const isHeader = msg.startsWith('---') || msg.includes('Available') || msg.includes('Devices:');
+        const isListItem = /^\s*\[\d+\]/.test(msg); // 匹配 [0] "COM1" 這種格式
+
+        if (isHeader) recentHeader = true;
+        // 如果訊息太長（非 Tagged 訊息）可能是系統雜訊，除非是在 Header 之後
+        if (!isTagged && !isHeader && !isListItem) {
+            recentHeader = false; 
+            return;
+        }
+
+        if (isTagged || isHeader || (recentHeader && isListItem)) {
+            let logType = 'info';
+            if (msg.startsWith('[ERR]') || msg.startsWith('[!]')) logType = 'error';
+            stageUI.appendLog(msg, logType);
+        }
+    });
+    window.__TAURI__.event.listen('processing-error', (e) => {
+        if (isProcessing) stageUI.appendLog(e.payload, 'error');
+    });
 }
 
 function initI18n() {
@@ -175,12 +290,28 @@ function updateLangCheck(lang) {
 
 settingsMenu.innerHTML = `
     <div class="dropdown-item" id="restart-audio-item"><img src="/icons/rocket_launch_24dp_FE2F89.png" class="nyx-icon-neon"><span>重啟音訊</span></div>
+    <div class="dropdown-item" id="set-path-item"><img src="/icons/explore_24dp_FE2F89.png" class="nyx-icon-neon"><span>設定processing-java路徑</span></div>
     <div class="dropdown-item has-submenu"><img src="/icons/language_24dp_FE2F89.png" class="nyx-icon-neon"><span>語言設定</span><span class="arrow">▶</span></div>
     <div class="submenu">
         <div class="dropdown-item lang-item" data-lang="zh-hant"><span class="lang-check" style="width:20px;"></span><span>正體中文</span></div>
         <div class="dropdown-item lang-item" data-lang="en"><span class="lang-check" style="width:20px;"></span><span>English</span></div>
     </div>
 `;
+
+document.body.addEventListener('click', async (e) => {
+    if (e.target.closest('#set-path-item')) {
+        const { open } = window.__TAURI__.dialog;
+        const selectedPath = await open({
+            multiple: false,
+            directory: false,
+            filters: [{ name: 'Processing Java', extensions: ['exe', ''] }]
+        });
+        if (selectedPath) {
+            await invoke('set_processing_path', { path: selectedPath });
+            alert("路徑已更新！");
+        }
+    }
+});
 
 settingsBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -261,23 +392,170 @@ document.getElementById('save-btn').onclick = async () => {
 
 document.getElementById('run-btn').onclick = async () => {
     document.getElementById('run-btn').classList.add('is-running');
+    if (stageUI.clearLog) stageUI.clearLog(); // 清除舊日誌
+    isProcessing = true; // 開始執行
+    
     const code = Blockly.Processing.workspaceToCode(workspace);
-    await invoke('run_processing', { code });
-    document.getElementById('run-btn').classList.remove('is-running');
+    
+    try {
+        await invoke('run_processing', { code });
+    } catch (err) {
+        if (err === "ERR_NO_PROCESSING") {
+            const { message, ask, open } = window.__TAURI__.dialog;
+            await message('找不到 Processing 執行環境 (processing-java)。\n\n系統搜尋了：\n1. C:\\processing-3.5.4\n2. HarmoNyx 內建目錄\n3. 系統 PATH\n\n請手動選取 processing-java.exe 的位置, 它通常位於 Processing 安裝目錄。', { title: '執行環境缺失', kind: 'warning' });
+            
+            const selectedPath = await open({
+                multiple: false,
+                directory: false,
+                filters: [{ name: 'Processing Java', extensions: ['exe', ''] }]
+            });
+
+            if (selectedPath) {
+                await invoke('set_processing_path', { path: selectedPath });
+                // 儲存後重試一次
+                try {
+                    await invoke('run_processing', { code });
+                } catch (retryErr) {
+                    alert('執行失敗：' + retryErr);
+                }
+            } else {
+                isProcessing = false;
+            }
+        } else {
+            alert('執行失敗：' + err);
+            isProcessing = false;
+        }
+    } finally {
+        document.getElementById('run-btn').classList.remove('is-running');
+    }
 };
 
-document.getElementById('stop-btn').onclick = () => invoke('stop_processing');
+document.getElementById('stop-btn').onclick = () => {
+    isProcessing = false; // 停止接收日誌
+    invoke('stop_processing');
+};
 
 // --- 8. 啟動與初始化 ---
-setTimeout(() => { 
+setTimeout(async () => { 
     Blockly.svgResize(workspace); 
     UIUtils.initMinimap(workspace); 
     UIUtils.initSearch(workspace); 
     setTimeout(createDefaultBlocks, 200);
+
+    // 啟動時偵測執行環境
+    try {
+        const hasProcessing = await invoke('run_processing', { code: "exit();" }); // 嘗試執行最小代碼測試路徑
+    } catch (err) {
+        if (err === "ERR_NO_PROCESSING") {
+            const { message, open } = window.__TAURI__.dialog;
+            await message('找不到 Processing 執行環境 (processing-java)。\n\n系統搜尋了：\n1. C:\\processing-3.5.4\n2. HarmoNyx 內建目錄\n3. 系統 PATH\n\n請選取 processing-java.exe 的位置, 它通常位於 Processing 安裝目錄。', { title: '執行環境缺失', kind: 'warning' });
+            
+            const selectedPath = await open({
+                multiple: false,
+                directory: false,
+                filters: [{ name: 'Processing Java', extensions: ['exe', ''] }]
+            });
+
+            if (selectedPath) {
+                await invoke('set_processing_path', { path: selectedPath });
+            }
+        }
+    }
 }, 300);
 
 workspace.addChangeListener((e) => {
-    if (workspace.isClearing || e.isUiEvent) return;
-    const isBlockChange = [Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_DELETE, Blockly.Events.VAR_CREATE, Blockly.Events.VAR_RENAME, Blockly.Events.VAR_DELETE].includes(e.type);
-    if (isBlockChange) setDirty(true);
+    if (workspace.isClearing) return;
+    
+    // --- 1. 檔案狀態與 Live Code 更新 (僅針對非 UI 事件) ---
+    if (!e.isUiEvent) {
+        const isBlockChange = [Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_DELETE, Blockly.Events.VAR_CREATE, Blockly.Events.VAR_RENAME, Blockly.Events.VAR_DELETE].includes(e.type);
+        if (isBlockChange) {
+            setDirty(true);
+            debouncedUpdateLiveCode();
+        }
+    }
+
+    // --- 2. Smart Panel: Visual Help (支援多種事件觸發) ---
+    let targetBlockId = null;
+
+    // A. 針對 UI 點擊或選擇事件 (Click / Selected)
+    if (e.type === Blockly.Events.UI && (e.element === 'click' || e.element === 'selected')) {
+        targetBlockId = e.blockId || e.newValue;
+    } else if (e.type === 'selected' || e.type === 'click') { // 新版事件備援
+        targetBlockId = e.blockId || e.newValue;
+    }
+    
+    // B. 針對積木操作事件 (Move / Create / Change) - 操作積木時也視為關注焦點
+    // 注意：BLOCK_DELETE 不觸發，因為積木已消失
+    else if ([Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE].includes(e.type)) {
+        targetBlockId = e.blockId;
+    }
+
+    if (targetBlockId) {
+        const block = workspace.getBlockById(targetBlockId);
+        // 只有當該積木存在且為當前選取積木時才更新 (避免干擾)
+        // 但為了流暢體驗，若操作事件發生，即使尚未 Selected 也嘗試更新
+        if (block) {
+             updateVisualHelp(block);
+        }
+    }
 });
+
+// --- Smart Panel Functions ---
+let liveCodeTimeout;
+function debouncedUpdateLiveCode() {
+    clearTimeout(liveCodeTimeout);
+    liveCodeTimeout = setTimeout(() => {
+        const code = Blockly.Processing.workspaceToCode(workspace);
+        const codeEl = document.getElementById('generated-code');
+        if (codeEl) codeEl.textContent = code;
+    }, 500);
+}
+
+function updateVisualHelp(block) {
+    const placeholder = document.getElementById('help-placeholder');
+    const content = document.getElementById('block-help-content');
+    const titleEl = document.getElementById('help-title');
+    const descEl = document.getElementById('help-desc');
+    const previewEl = document.getElementById('help-preview');
+
+    if (!placeholder || !content) return;
+
+    placeholder.style.display = 'none';
+    content.style.display = 'block';
+
+    // 1. Title
+    // 嘗試從積木定義訊息中獲取名稱，或使用 Type
+    let title = block.type;
+    // 嘗試尋找對應的 MSG 鍵值
+    for (const key in Blockly.Msg) {
+        if (block.type.toUpperCase() === key) {
+            title = Blockly.Msg[key];
+            break;
+        }
+    }
+    // 如果是變數相關，顯示變數名稱
+    if (block.type === 'variables_get' || block.type === 'variables_set') {
+         title = `${Blockly.Msg[block.type.toUpperCase()] || block.type} (${block.getField('VAR').getText()})`;
+    }
+    titleEl.textContent = title;
+
+    // 2. Description (Tooltip)
+    let tooltip = block.getTooltip();
+    if (typeof tooltip === 'function') tooltip = tooltip();
+    descEl.innerHTML = tooltip ? tooltip.replace(/\n/g, '<br>') : '無說明文件';
+
+    // 3. Preview (渲染靜態 SVG)
+    previewEl.innerHTML = '';
+    try {
+        // 簡易渲染：這裡暫時只顯示 Type 作為預覽，因為完整渲染 SVG 需要複製 Block 結構
+        // 未來可考慮使用 Blockly.utils.xml.blockToDom + workspace.render
+        const typeLabel = document.createElement('span');
+        typeLabel.style.color = '#aaa';
+        typeLabel.style.fontFamily = 'monospace';
+        typeLabel.textContent = `<${block.type}>`;
+        previewEl.appendChild(typeLabel);
+    } catch (e) {
+        console.error('Preview render error:', e);
+    }
+}

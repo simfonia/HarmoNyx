@@ -36,13 +36,16 @@ Blockly.Processing.registerGenerator('sb_instrument_container', function(block) 
 Blockly.Processing.registerGenerator('sb_set_wave', function(block) {
   if (!Blockly.Processing.currentGenInstrumentName) return '// sb_set_wave must be inside sb_instrument_container\n';
   const type = block.getFieldValue('TYPE');
-  return `instrumentMap.put("${Blockly.Processing.currentGenInstrumentName}", "${type}");\n`;
+  const name = Blockly.Processing.currentGenInstrumentName;
+  return `if (instrumentMap.containsKey("${name}") && !instrumentMap.get("${name}").equals("${type}")) println("[WARN] Instrument '${name}' source overwritten by '${type}'");\ninstrumentMap.put("${name}", "${type}");\n`;
 });
 
 Blockly.Processing.registerGenerator('sb_set_noise', function(block) {
   if (!Blockly.Processing.currentGenInstrumentName) return '// sb_set_noise must be inside sb_instrument_container\n';
   const type = block.getFieldValue('TYPE');
-  return `instrumentMap.put("${Blockly.Processing.currentGenInstrumentName}", "NOISE_${type}");\n`;
+  const name = Blockly.Processing.currentGenInstrumentName;
+  const fullType = "NOISE_" + type;
+  return `if (instrumentMap.containsKey("${name}") && !instrumentMap.get("${name}").equals("${fullType}")) println("[WARN] Instrument '${name}' source overwritten by '${fullType}'");\ninstrumentMap.put("${name}", "${fullType}");\n`;
 });
 
 Blockly.Processing.registerGenerator('sb_mixed_source', function(block) {
@@ -57,7 +60,7 @@ Blockly.Processing.registerGenerator('sb_mixed_source', function(block) {
   const sDepth = (block.hasSweep_) ? (Blockly.Processing.valueToCode(block, 'SWEEP_DEPTH_INPUT', Blockly.Processing.ORDER_ATOMIC) || '20') : '0';
   
   const name = Blockly.Processing.currentGenInstrumentName;
-  let code = `instrumentMap.put("${name}", "MIXED");\n`;
+  let code = `if (instrumentMap.containsKey("${name}") && !instrumentMap.get("${name}").equals("MIXED")) println("[WARN] Instrument '${name}' source overwritten by 'MIXED'");\ninstrumentMap.put("${name}", "MIXED");\n`;
   code += `instrumentMixConfigs.put("${name}", "${wave},${noise}," + floatVal(${level}) + "," + floatVal(${jitter}) + "," + floatVal(${sRate}) + "," + floatVal(${sDepth}));\n`;
   return code;
 });
@@ -69,7 +72,7 @@ Blockly.Processing.registerGenerator('sb_drum_sampler', function(block) {
   const type = block.getFieldValue('PATH');
   const path = (type === 'CUSTOM') ? block.getFieldValue('CUSTOM_PATH_VALUE') : type;
   
-  let code = '';
+  let code = `if (instrumentMap.containsKey("${name}") && !instrumentMap.get("${name}").equals("DRUM")) println("[WARN] Instrument '${name}' source overwritten by 'DRUM'");\n`;
   code += 'samplerMap.put("' + name + '", new ddf.minim.ugens.Sampler("' + path + '", 20, minim));\n';
   code += 'samplerGainMap.put("' + name + '", new Gain(0.f));\n';
   code += '((ddf.minim.ugens.Sampler)samplerMap.get("' + name + '")).patch((Gain)samplerGainMap.get("' + name + '")).patch(getInstrumentMixer("' + name + '"));\n';
@@ -89,7 +92,7 @@ Blockly.Processing.registerGenerator('sb_melodic_sampler', function(block) {
   else if (type === 'VIOLIN_ARCO') path = "violin/violin-section-vibrato-sustain";
   else path = block.getFieldValue('CUSTOM_PATH_VALUE');
 
-  let code = '';
+  let code = `if (instrumentMap.containsKey("${name}") && !instrumentMap.get("${name}").equals("MELODIC_SAMPLER")) println("[WARN] Instrument '${name}' source overwritten by 'MELODIC_SAMPLER'");\n`;
   code += 'if (!melodicSamplers.containsKey("' + name + '")) melodicSamplers.put("' + name + '", new MelodicSampler(minim, "' + name + '"));\n';
   code += 'melodicSamplers.get("' + name + '").loadSamples("' + path + '");\n';
   code += 'instrumentMap.put("' + name + '", "MELODIC_SAMPLER");\n';

@@ -14,7 +14,7 @@ C:\Workspace\HarmoNyx\
 │   ├───screen.png (樣式參考截圖)
 │   └───work\ (每日工作日誌)
 ├───resources\ (靜態資產與資源)
-│   ├───examples\ (內建 XML/NYX 範例專案)
+│   ├───examples\ (內建 NYX 範例專案)
 │   ├───modules\ (Blockly 模組定義)
 │   └───samples\ (Minim 音訊樣本庫)
 ├───src-tauri\ (Tauri 後端 - Rust)
@@ -45,4 +45,4 @@ C:\Workspace\HarmoNyx\
 └───processing-3.5.4\ (影音引擎執行環境)
 
 ---
-*最後更新日期：2026-03-20 (UI 重構完成)*
+*最後更新日期：2026-03-22 (範例副檔名遷移至 .nyx)*

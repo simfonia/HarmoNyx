@@ -14,7 +14,7 @@ Blockly.Processing.forBlock['serial_init'] = function(block) {
   Blockly.Processing.addImport("import processing.serial.*;");
   
   // Note: myPort is now pre-declared in visual_stage_setup to support dynamic UI
-  return `println("--- Available Serial Ports ---");\n` +
+  return `println("[DEV] --- Available Serial Ports ---");\n` +
          `println(Serial.list());\n` +
          `serialBaud = ${baud};\n` +
          `try {\n` +

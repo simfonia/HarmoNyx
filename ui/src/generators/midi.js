@@ -14,7 +14,7 @@ Blockly.Processing.forBlock['midi_init'] = function(block) {
   Blockly.Processing.imports_['midibus'] = 'import themidibus.*;';
   
   // Initialize device and store in HashMap
-  return `MidiBus.list();\nmidiBusses.put("${name}", new MidiBus(this, ${input}, ${output}, "${name}"));\n`;
+  return `println("[DEV] --- Available MIDI Devices ---");\nMidiBus.list();\nmidiBusses.put("${name}", new MidiBus(this, ${input}, ${output}, "${name}"));\n`;
 };
 
 Blockly.Processing.forBlock['midi_on_note'] = function(block) {

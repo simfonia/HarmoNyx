@@ -159,7 +159,32 @@ export const UIUtils = {
             clearBtn.onclick = () => { if (logContainer) logContainer.innerHTML = ''; };
         }
 
+        // --- Smart Panel Tabs Logic ---
+        const tabs = document.querySelectorAll('.tab-btn');
+        const panes = document.querySelectorAll('.tab-pane');
+
+        tabs.forEach(tab => {
+            tab.onclick = () => {
+                // Remove active from all
+                tabs.forEach(t => {
+                    t.classList.remove('active');
+                    const img = t.querySelector('img');
+                    if(img) img.style.filter = ''; // Reset filter if any
+                });
+                panes.forEach(p => p.classList.remove('active')); // CSS handles display:none
+
+                // Activate clicked
+                tab.classList.add('active');
+                const targetId = tab.getAttribute('data-tab');
+                const targetPane = document.getElementById(targetId);
+                if (targetPane) {
+                    targetPane.classList.add('active');
+                }
+            };
+        });
+
         return {
+            clearLog: () => { if (logContainer) logContainer.innerHTML = ''; },
             appendLog: (msg, type = 'info') => {
                 if (!logContainer) return;
                 const div = document.createElement('div');
@@ -167,7 +192,7 @@ export const UIUtils = {
                 div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
                 logContainer.appendChild(div);
                 logContainer.scrollTop = logContainer.scrollHeight;
-                if (logContainer.childNodes.length > 500) logContainer.removeChild(logContainer.firstChild);
+                if (logContainer.childNodes.length > 200) logContainer.removeChild(logContainer.firstChild);
             }
         };
     },

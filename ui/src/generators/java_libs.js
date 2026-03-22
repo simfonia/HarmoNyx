@@ -332,29 +332,29 @@ window.SB_JavaLibs.GENERAL_HELPERS = `
     if (cp5 == null) { println("[Early Log] " + msg); return; }
     Textarea target = (type >= 1) ? cp5.get(Textarea.class, "alertsArea") : cp5.get(Textarea.class, "consoleArea");
     if (target != null) {
-      String prefix = (type == 3) ? "[ERR] " : (type == 2) ? "[WARN] " : (type == 1) ? "[!] " : "[INFO] ";
+      String prefix = (type == 3) ? "[ERR] " : (type == 2) ? "[WARN] " : (type == 1) ? "[MSG] " : "[INFO] ";
       target.append(prefix + msg + "\\n"); target.scroll(1.0);
     }
-    println((type==3?"[ERR] ":type==2?"[WARN] ":"[INFO] ") + msg);
+    println((type==3?"[ERR] ":type==2?"[WARN] ":type==1?"[MSG] ":"[INFO] ") + msg);
   }
 
   void midiInputDevice(int n) {
     if (myBus == null) return; String[] inputs = MidiBus.availableInputs();
-    if (n >= 0 && n < inputs.length) { myBus.clearInputs(); myBus.addInput(n); logToScreen("MIDI Connected: " + inputs[n], 1); }
+    if (n >= 0 && n < inputs.length) { myBus.clearInputs(); myBus.addInput(n); logToScreen("MIDI Connected: " + inputs[n], 0); }
   }
 
   void serialInputDevice(int n) {
     String[] ports = Serial.list();
     if (n >= 0 && n < ports.length) {
       if (myPort != null) { myPort.stop(); }
-      try { myPort = new Serial(this, ports[n], serialBaud); myPort.bufferUntil('\\n'); logToScreen("Serial Connected: " + ports[n], 1); }
+      try { myPort = new Serial(this, ports[n], serialBaud); myPort.bufferUntil('\\n'); logToScreen("Serial Connected: " + ports[n], 0); }
       catch (Exception e) { logToScreen("Serial Error: Port Busy or Unavailable", 3); }
     }
   }
 
   void scanMidi() {
     String[] inputs = MidiBus.availableInputs(); ScrollableList sl = cp5.get(ScrollableList.class, "midiInputDevice");
-    if (sl != null) { sl.clear(); for (int i = 0; i < inputs.length; i++) { sl.addItem(inputs[i], i); } logToScreen("MIDI Scanned: " + inputs.length + " devices found.", 1); }
+    if (sl != null) { sl.clear(); for (int i = 0; i < inputs.length; i++) { sl.addItem(inputs[i], i); } logToScreen("MIDI Scanned: " + inputs.length + " devices found.", 0); }
   }
 
   void copyLogs() {
@@ -388,7 +388,14 @@ window.SB_JavaLibs.GENERAL_HELPERS = `
     if (k == 'q') p = 60; else if (k == '2') p = 61; else if (k == 'w') p = 62; else if (k == '3') p = 63; else if (k == 'e') p = 64; else if (k == 'r') p = 65;
     else if (k == '5') p = 66; else if (k == 't') p = 67; else if (k == '6') p = 68; else if (k == 'y') p = 69; else if (k == '7') p = 70; else if (k == 'u') p = 71;
     else if (k == 'i') p = 72; else if (k == '9') p = 73; else if (k == 'o') p = 74; else if (k == '0') p = 75; else if (k == 'p') p = 76;
-    if (p != -1) { if (!pcKeysHeld.containsKey(p)) { playNoteInternal(currentInstrument, p, 100); pcKeysHeld.put(p, currentInstrument); logToScreen("Keyboard ON: MIDI " + p, 0); } }
+    if (p != -1) { 
+      int transP = p + pitchTranspose;
+      if (!pcKeysHeld.containsKey(p)) { 
+        playNoteInternal(currentInstrument, transP, 100); 
+        pcKeysHeld.put(p, currentInstrument); 
+        logToScreen("Keyboard ON: MIDI " + transP, 0); 
+      } 
+    }
     {{KEY_PRESSED_EVENT_PLACEHOLDER}}
   }
 
@@ -397,7 +404,14 @@ window.SB_JavaLibs.GENERAL_HELPERS = `
     if (k == 'q') p = 60; else if (k == '2') p = 61; else if (k == 'w') p = 62; else if (k == '3') p = 63; else if (k == 'e') p = 64; else if (k == 'r') p = 65;
     else if (k == '5') p = 66; else if (k == 't') p = 67; else if (k == '6') p = 68; else if (k == 'y') p = 69; else if (k == '7') p = 70; else if (k == 'u') p = 71;
     else if (k == 'i') p = 72; else if (k == '9') p = 73; else if (k == 'o') p = 74; else if (k == '0') p = 75; else if (k == 'p') p = 76;
-    if (p != -1) { if (pcKeysHeld.containsKey(p)) { String inst = pcKeysHeld.get(p); stopNoteInternal(inst, p); pcKeysHeld.remove(p); logToScreen("Keyboard OFF: MIDI " + p, 0); } }
+    if (p != -1) { 
+      if (pcKeysHeld.containsKey(p)) { 
+        String inst = pcKeysHeld.get(p); 
+        stopNoteInternal(inst, p + pitchTranspose); 
+        pcKeysHeld.remove(p); 
+        logToScreen("Keyboard OFF: MIDI " + (p + pitchTranspose), 0); 
+      } 
+    }
     {{KEY_RELEASED_EVENT_PLACEHOLDER}}
   }
 

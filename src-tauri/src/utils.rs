@@ -72,18 +72,32 @@ pub fn create_platform_link(target: &Path, link: &Path) -> std::io::Result<()> {
 }
 
 /// 智能搜尋 processing-java 執行檔路徑
-pub fn get_processing_cmd() -> String {
+pub fn get_processing_cmd(app_handle: &tauri::AppHandle) -> Option<String> {
     let cmd_name = if cfg!(target_os = "windows") {
         "processing-java.exe"
     } else {
         "processing-java"
     };
 
-    // 1. 檢查目前目錄
-    let p1 = Path::new(cmd_name);
-    if p1.exists() { return p1.to_str().unwrap().to_string(); }
+    // 1. 檢查使用者自訂路徑 (儲存在 app_data 下的 config.txt)
+    let config_path = app_handle.path().app_data_dir().unwrap().join("processing_path.txt");
+    if config_path.exists() {
+        if let Ok(saved_path) = fs::read_to_string(&config_path) {
+            let p = Path::new(saved_path.trim());
+            if p.exists() {
+                return Some(p.to_str().unwrap().to_string());
+            }
+        }
+    }
 
-    // 2. 檢查專案根目錄下的 processing-3.5.4
+    // 2. 檢查 C:\processing-3.5.4 (Windows 優先)
+    #[cfg(windows)]
+    {
+        let p_c = Path::new(r"C:\processing-3.5.4").join(cmd_name);
+        if p_c.exists() { return Some(p_c.to_str().unwrap().to_string()); }
+    }
+
+    // 3. 檢查專案根目錄下的 processing-3.5.4 (相對於執行檔或開發目錄)
     let search_paths = [
         Path::new("processing-3.5.4").join(cmd_name),
         Path::new("..").join("processing-3.5.4").join(cmd_name),
@@ -92,14 +106,14 @@ pub fn get_processing_cmd() -> String {
 
     for path in &search_paths {
         if path.exists() {
-            return fs::canonicalize(path).unwrap().to_str().unwrap().replace(r"\\?\", "").to_string();
+            return Some(fs::canonicalize(path).unwrap().to_str().unwrap().replace(r"\\?\", "").to_string());
         }
     }
 
-    // 3. 檢查系統 PATH
+    // 4. 檢查系統 PATH
     if let Ok(path) = which::which(cmd_name) {
-        return path.to_str().unwrap().to_string();
+        return Some(path.to_str().unwrap().to_string());
     }
 
-    cmd_name.to_string()
+    None
 }

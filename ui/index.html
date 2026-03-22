@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/favicon.png">
     <title>HarmoNyx IDE</title>
     <style>
         /* 強制確保 Blockly SVG 可見 */
@@ -42,18 +43,37 @@
         <main>
             <div id="blocklyDiv"></div>
             <div id="stage-panel">
-                <div class="panel-section" id="visual-section">
-                    <div class="section-header">
-                        <img src="/icons/icon.png" class="nyx-icon-blue">
-                        <span data-i18n="HARMONYX_STAGE_VISUAL">視覺舞台</span>
+                <div class="panel-section" id="smart-tabs-section">
+                    <div class="smart-tabs-header">
+                        <div class="tab-btn active" data-tab="visual-help">
+                            <img src="/icons/precision_manufacturing_24dp_FE2F89.png" class="nyx-icon-purple">
+                            <span data-i18n="HARMONYX_TAB_HELP">積木輔助</span>
+                        </div>
+                        <div class="tab-btn" data-tab="live-code">
+                            <img src="/icons/code_24dp_FE2F89.png" class="nyx-icon-blue">
+                            <span data-i18n="HARMONYX_TAB_CODE">程式碼</span>
+                        </div>
                     </div>
-                    <div class="section-content">
-                        <canvas id="waveformCanvas"></canvas>
+                    <div class="smart-tabs-body">
+                        <div id="visual-help" class="tab-pane active">
+                            <div id="help-placeholder" class="help-placeholder">
+                                <img src="/icons/touch_app_24dp_5F6368.png" class="nyx-icon-dim" style="width: 48px; height: 48px; opacity: 0.5;">
+                                <p data-i18n="HARMONYX_HELP_HINT">點擊積木以查看說明</p>
+                            </div>
+                            <div id="block-help-content" style="display:none;">
+                                <h3 id="help-title"></h3>
+                                <div id="help-preview"></div>
+                                <p id="help-desc"></p>
+                            </div>
+                        </div>
+                        <div id="live-code" class="tab-pane">
+                            <pre><code id="generated-code" class="language-java"></code></pre>
+                        </div>
                     </div>
                 </div>
                 <div class="panel-section" id="log-section">
                     <div class="section-header">
-                        <img src="/icons/export_code_24dp_FE2F89.png" class="nyx-icon-neon">
+                        <img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-neon">
                         <span data-i18n="HARMONYX_STAGE_LOG">執行日誌</span>
                         <div class="header-actions">
                             <div id="clear-log-btn" class="mini-btn" title="清除日誌">

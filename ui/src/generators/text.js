@@ -79,5 +79,5 @@ Blockly.Processing.forBlock['text_trim'] = function(block) {
 
 Blockly.Processing.forBlock['text_print'] = function(block) {
   const msg = Blockly.Processing.valueToCode(block, 'TEXT', Blockly.Processing.ORDER_NONE) || '""';
-  return 'println(' + msg + ');\n';
+  return 'println("[USER] " + ' + msg + ');\n';
 };

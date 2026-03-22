@@ -11,30 +11,47 @@ struct ProcessState {
 }
 
 #[tauri::command]
+async fn set_processing_path(app_handle: tauri::AppHandle, path: String) -> Result<(), String> {
+    let config_dir = app_handle.path().app_data_dir().unwrap();
+    if !config_dir.exists() {
+        fs::create_dir_all(&config_dir).map_err(|e| e.to_string())?;
+    }
+    let config_path = config_dir.join("processing_path.txt");
+    fs::write(config_path, path).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 async fn run_processing(
     app_handle: tauri::AppHandle,
     state: State<'_, ProcessState>,
     code: String
 ) -> Result<String, String> {
-    // 1. 取得絕對目錄路徑 (回歸系統臨時目錄)
+    // 1. 搜尋執行檔
+    let cmd = match utils::get_processing_cmd(&app_handle) {
+        Some(c) => c,
+        None => return Err("ERR_NO_PROCESSING".to_string()),
+    };
+
+    // 2. 取得絕對目錄路徑 (回歸系統臨時目錄)
     let temp_dir = app_handle.path().app_data_dir().unwrap().join("temp_sketch");
     let sketch_name = "HarmoNyxSketch";
     let sketch_dir = temp_dir.join(sketch_name);
     let pde_path = sketch_dir.join(format!("{}.pde", sketch_name));
 
-    // 2. 準備目錄
+    // 3. 準備目錄
     if !sketch_dir.exists() {
         fs::create_dir_all(&sketch_dir).map_err(|e| e.to_string())?;
     }
 
-    // 3. 寫入代碼
+    // 4. 寫入代碼
     fs::write(&pde_path, code).map_err(|e| e.to_string())?;
     
     // 取得絕對路徑字串並正規化
     let sketch_dir_str = sketch_dir.to_str().ok_or("Failed to convert sketch path")?
         .replace(r"\\?\", "");
 
-    // 4. 資源掛載 (Junctions)
+    // 5. 資源掛載 (Junctions)
     let samples_src = utils::get_samples_path(&app_handle);
     let samples_dest = sketch_dir.join("data");
     let samples_src_norm = Path::new(samples_src.to_str().unwrap().replace(r"\\?\", "").as_str()).to_path_buf();
@@ -43,11 +60,10 @@ async fn run_processing(
         println!("Warning: Failed to create junction for samples: {}", e);
     }
     
-    // 5. 終止舊進程 (如果存在)
+    // 6. 終止舊進程 (如果存在)
     stop_internal(&state).await;
 
-    // 6. 執行 processing-java
-    let cmd = utils::get_processing_cmd();
+    // 7. 執行 processing-java
     println!("Executing: {} --sketch={} --run", cmd, sketch_dir_str);
 
     let mut child = Command::new(cmd)
@@ -141,7 +157,7 @@ async fn list_examples(app_handle: tauri::AppHandle) -> Result<serde_json::Value
                 if let Ok(sub_entries) = fs::read_dir(&path) {
                     for sub_entry in sub_entries.filter_map(|e| e.ok()) {
                         let sub_path = sub_entry.path();
-                        if sub_path.extension().map_or(false, |ext| ext == "xml") {
+                        if sub_path.extension().map_or(false, |ext| ext == "nyx" || ext == "xml") {
                             files.push(serde_json::json!({
                                 "name": sub_entry.file_name().into_string().unwrap(),
                                 "path": sub_path.to_str().unwrap().to_string()
@@ -155,7 +171,7 @@ async fn list_examples(app_handle: tauri::AppHandle) -> Result<serde_json::Value
                         "items": files
                     }));
                 }
-            } else if path.extension().map_or(false, |ext| ext == "xml") {
+            } else if path.extension().map_or(false, |ext| ext == "nyx" || ext == "xml") {
                  result.push(serde_json::json!({
                     "name": entry.file_name().into_string().unwrap(),
                     "path": path.to_str().unwrap().to_string()
@@ -181,7 +197,8 @@ pub fn run() {
         stop_processing,
         save_project,
         load_project,
-        list_examples
+        list_examples,
+        set_processing_path
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
