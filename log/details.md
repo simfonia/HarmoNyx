@@ -1,4 +1,13 @@
-﻿## Processing 3.5.4 指令限制
+## Tauri 資源打包與路徑映射
+- **問題**: 當使用 `resources: ["../resources/**/*"]` 進行打包時，WiX/Tauri 預設會保留相對路徑結構，導致安裝後出現 `_up_` 資料夾，破壞程式的路徑查找邏輯。
+- **解法**: 使用物件語法進行明確映射：`{ "src": "../resources", "target": "resources" }`。這會將外部資源直接平鋪到安裝目錄下的 `resources/`，確保開發與生產環境的路徑結構一致。
+
+## Windows 子進程黑窗隱藏 (CREATE_NO_WINDOW)
+- **問題**: 在 Windows GUI 應用程式中透過 `std::process::Command` 執行 Console 程式 (如 `processing-java` 或 `cmd /c taskkill`) 時，會短暫跳出黑色的命令提示字元視窗，影響使用者體驗。
+- **解法**: 必須使用 Windows 特有的擴充 trait `std::os::windows::process::CommandExt`。
+- **實作**: 在建立 `Command` 物件後，呼叫 `.creation_flags(0x08000000)`。這個 flag 對應 Win32 API 的 `CREATE_NO_WINDOW`，能確保子進程在無窗模式下執行。
+
+## Processing 3.5.4 指令限制
 \processing-java.exe\ 不支援 \--settings-path\ 參數。若要自定義 settings，需透過變更使用者目錄或環境變數，但考慮到穩定性，目前已棄用此方案。
 
 ## 佔位符替換 (Regex)
@@ -57,4 +66,3 @@ Minimap 預設不會監聽單純的點擊事件。我們在 `ui_utils.js` 的 `i
 - **摺疊式選單 (Accordion)**:
     - 為了同時支援垂直捲動與子選單顯示，棄用了側邊彈出 (Nested Hover) 樣式，改為內嵌摺疊。
     - CSS 結構：子選單 `.submenu` 與父項目 `.has-submenu` 為兄弟元素 (Sibling)，透過 `+` 選擇器控制顯示。
-

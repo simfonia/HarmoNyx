@@ -2,6 +2,7 @@
 
 ## 專案根目錄
 C:\Workspace\HarmoNyx\
+├───build.bat (一鍵打包腳本：自動建置前端與後端)
 ├───.gitignore
 ├───FILE_STRUCTURE.md
 ├───GEMINI.md (技術架構與關鍵規範)
@@ -13,17 +14,18 @@ C:\Workspace\HarmoNyx\
 │   ├───todo.md (任務清單)
 │   ├───screen.png (樣式參考截圖)
 │   └───work\ (每日工作日誌)
-├───resources\ (靜態資產與資源)
-│   ├───examples\ (內建 NYX 範例專案)
-│   ├───modules\ (Blockly 模組定義)
-│   └───samples\ (Minim 音訊樣本庫)
 ├───src-tauri\ (Tauri 後端 - Rust)
+│   ├───resources\ (靜態資產與資源 - 移入此處以解決打包路徑問題)
+│   │   ├───examples\ (內建 NYX 範例專案)
+│   │   ├───modules\ (Blockly 模組定義)
+│   │   └───samples\ (Minim 音訊樣本庫)
 │   ├───src\
-│   │   ├───lib.rs (主邏輯：進程管理、日誌串流、IO 指令)
+│   │   ├───lib.rs (主邏輯：進程管理、CMD黑窗隱藏、IO指令)
 │   │   ├───main.rs (進入點)
-│   │   └───utils.rs (路徑處理、資源掛載 Junctions)
+│   │   └───utils.rs (路徑處理、資源搜尋優化)
 │   ├───Cargo.toml (依賴管理)
-│   └───tauri.conf.json (Tauri 設定檔)
+│   ├───tauri.conf.json (Tauri 設定檔 - 資源路徑已簡化)
+│   └───.gitignore (忽略資源副本)
 ├───ui\ (前端介面 - Vite + Vanilla JS)
 │   ├───src\
 │   │   ├───blocks\ (Blockly 積木定義)
@@ -45,4 +47,4 @@ C:\Workspace\HarmoNyx\
 └───processing-3.5.4\ (影音引擎執行環境)
 
 ---
-*最後更新日期：2026-03-22 (範例副檔名遷移至 .nyx)*
+*最後更新日期：2026-03-22 (專案結構重整與自動化打包)*

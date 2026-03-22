@@ -16,23 +16,32 @@ pub fn get_resource_path(app_handle: &tauri::AppHandle, sub_path: &str) -> PathB
 
 /// 獲取 samples 資料夾的路徑，自動適應開發與生產環境
 pub fn get_samples_path(app_handle: &tauri::AppHandle) -> PathBuf {
-    // 1. 檢查開發環境下的專案根目錄 (相對於 src-tauri 往上找)
-    let search_paths = [
-        PathBuf::from("resources/samples"),
-        PathBuf::from("..").join("resources/samples"),
-        PathBuf::from("..").join("..").join("resources/samples"),
-    ];
-
-    for path in &search_paths {
-        if path.exists() {
-            return fs::canonicalize(path).unwrap();
+    // 1. 優先檢查生產環境資源目錄 (最標準做法)
+    if let Ok(resource_dir) = app_handle.path().resource_dir() {
+        let prod_path = resource_dir.join("resources").join("samples");
+        if prod_path.exists() {
+            return prod_path;
         }
     }
 
-    // 2. 檢查生產環境 (Tauri Resource Path)
-    app_handle.path().resource_dir().expect("Failed to get resource dir")
-        .join("resources")
-        .join("samples")
+    // 2. 開發環境回退機制 (檢查當前目錄下的 resources)
+    let dev_path = PathBuf::from("resources").join("samples");
+    if dev_path.exists() {
+        if let Ok(p) = fs::canonicalize(&dev_path) {
+            return p;
+        }
+    }
+
+    // 3. 最後手段：檢查上層目錄 (相容舊結構或特殊執行環境)
+    let fallback_path = PathBuf::from("..").join("resources").join("samples");
+    if fallback_path.exists() {
+        if let Ok(p) = fs::canonicalize(&fallback_path) {
+            return p;
+        }
+    }
+
+    // 若都找不到，回傳一個合理預設值以免 panic
+    PathBuf::from("resources").join("samples")
 }
 
 /// 跨平台目錄連結 (Windows 使用 Junction, Unix 使用 Symlink)

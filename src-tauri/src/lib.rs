@@ -2,6 +2,8 @@ mod utils;
 use std::fs;
 use std::path::Path;
 use std::process::{Command, Child, Stdio};
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, State};
 
@@ -66,12 +68,16 @@ async fn run_processing(
     // 7. 執行 processing-java
     println!("Executing: {} --sketch={} --run", cmd, sketch_dir_str);
 
-    let mut child = Command::new(cmd)
-        .arg(format!("--sketch={}", sketch_dir_str))
+    let mut command = Command::new(cmd);
+    command.arg(format!("--sketch={}", sketch_dir_str))
         .arg("--run")
         .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
+        .stderr(Stdio::piped());
+
+    #[cfg(windows)]
+    command.creation_flags(0x08000000); // CREATE_NO_WINDOW
+
+    let mut child = command.spawn()
         .map_err(|e| e.to_string())?;
 
     let stdout = child.stdout.take().ok_or("Failed to open stdout")?;
@@ -113,9 +119,10 @@ async fn stop_internal(state: &ProcessState) {
         
         #[cfg(windows)]
         {
-            let _ = Command::new("taskkill")
-                .args(&["/F", "/T", "/PID", &pid.to_string()])
-                .output();
+            let mut kill_cmd = Command::new("taskkill");
+            kill_cmd.args(&["/F", "/T", "/PID", &pid.to_string()]);
+            kill_cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+            let _ = kill_cmd.output();
         }
         let _ = child.kill();
     }

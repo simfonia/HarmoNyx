@@ -1,4 +1,18 @@
-﻿## 2026-03-19 (產生器強化與環境回歸)
+## 2026-03-22 (專案結構重整)
+- **結構異動**: 為了解決 Tauri 打包與路徑問題，已將 `HarmoNyx/resources` **移入** `HarmoNyx/src-tauri/resources`。
+- **打包配置**: `tauri.conf.json` 現可直接引用 `resources/**/*`，無需使用複雜的映射或相對路徑。
+- **打包狀態**: 建議使用者重新執行完整打包流程。
+
+## 2026-03-22 (第一次打包程序)
+- **Release Build**: 啟動了第一次全系統打包 (v0.1.0)。
+- **建置策略**: 由於 `beforeBuildCommand` 的相對路徑解析問題，決定採用「手動前端建置 + 忽略腳本」的策略。
+  1. 手動執行 `npm run build` 於 `ui/`。
+  2. 暫時將 `tauri.conf.json` 的 `beforeBuildCommand` 設為空。
+  3. 執行 `cargo tauri build`。
+- **資源整合**: 在 `tauri.conf.json` 中配置了 `resources` 打包路徑，確保 `samples/` 與 `examples/` 能正確發布。
+- **建置狀態**: 目前背景執行 `cargo tauri build` (PID: 14464)。
+
+## 2026-03-19 (產生器強化與環境回歸)
 - **環境隔離實驗**: 
     - 嘗試透過 \--settings-path\ 實現可攜式模式，但因 Processing 3.5.4 指令限制與 BOM 編碼衝突失敗。
     - **最終決策**: 回歸與 #stage 一致的模式，由使用者自行安裝 Processing 環境。已清理所有專案內建庫。
@@ -51,4 +65,3 @@ oteToMidi\ 定義。
     - 解決了 Minimap 圖示無法顯示的問題 (繼承 WaveCode 修復)。
     - 解決了積木載入時 `window.SB_Utils` 未定義的錯誤 (透過 `preinit.js` 第一行加載)。
 - **當前狀態**: UI 已能正常開啟，待驗證 Processing 執行功能。
-
