@@ -45,41 +45,29 @@ pub fn get_samples_path(app_handle: &tauri::AppHandle) -> PathBuf {
 }
 
 /// 跨平台目錄連結 (Windows 使用 Junction, Unix 使用 Symlink)
+#[cfg(windows)]
 pub fn create_platform_link(target: &Path, link: &Path) -> std::io::Result<()> {
-    if link.exists() {
-        if link.is_dir() {
-            let _ = fs::remove_dir_all(link);
-        } else {
-            let _ = fs::remove_file(link);
-        }
-    }
-    
-    if let Some(parent) = link.parent() {
-        let _ = fs::create_dir_all(parent);
+    // 強制移除，不論該處是什麼 (Junction 或目錄)
+    if link.exists() || link.symlink_metadata().is_ok() {
+        let _ = std::process::Command::new("cmd")
+            .args(&["/C", "rmdir", "/S", "/Q", link.to_str().unwrap()])
+            .status();
     }
 
-    #[cfg(windows)]
-    {
-        let target_str = target.to_str().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid target path"))?;
-        let link_str = link.to_str().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid link path"))?;
-        
-        let status = std::process::Command::new("cmd")
-            .args(&["/C", "mklink", "/J", link_str, target_str])
-            .status()?;
-        
-        if status.success() {
-            Ok(())
-        } else {
-            Err(std::io::Error::new(std::io::ErrorKind::Other, "mklink failed"))
-        }
-    }
+    // 建立 Junction
+    let target_str = target.to_str().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid target path"))?;
+    let link_str = link.to_str().ok_or(std::io::Error::new(std::io::ErrorKind::Other, "Invalid link path"))?;
 
-    #[cfg(unix)]
-    {
-        symlink_directory(target, link)
+    let status = std::process::Command::new("cmd")
+        .args(&["/C", "mklink", "/J", link_str, target_str])
+        .status()?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err(std::io::Error::new(std::io::ErrorKind::Other, "mklink failed"))
     }
 }
-
 /// 智能搜尋 processing-java 執行檔路徑
 pub fn get_processing_cmd(app_handle: &tauri::AppHandle) -> Option<String> {
     let cmd_name = if cfg!(target_os = "windows") {

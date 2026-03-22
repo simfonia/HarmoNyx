@@ -20,7 +20,7 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "#5B67E7",
     "tooltip": "%{BKY_MIDI_INIT_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html")
+    "helpUrl": "launchpad"
   },
   {
     "type": "midi_on_note",
@@ -36,7 +36,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "colour": "#5B67E7",
     "tooltip": "%{BKY_MIDI_ON_NOTE_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html"),
+    "helpUrl": "launchpad",
     "hat": true
   },
   {
@@ -53,7 +53,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "colour": "#5B67E7",
     "tooltip": "%{BKY_MIDI_OFF_NOTE_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html"),
+    "helpUrl": "launchpad",
     "hat": true
   },
   {
@@ -70,7 +70,7 @@ Blockly.defineBlocksWithJsonArray([
     ],
     "colour": "#5B67E7",
     "tooltip": "%{BKY_MIDI_ON_CONTROLLER_CHANGE_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html"),
+    "helpUrl": "launchpad",
     "hat": true
   },
   {
@@ -92,7 +92,7 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "#5B67E7",
     "tooltip": "%{BKY_MIDI_SEND_NOTE_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html")
+    "helpUrl": "launchpad"
   },
   {
     "type": "midi_send_cc",
@@ -108,7 +108,7 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "#5B67E7",
     "tooltip": "%{BKY_MIDI_SEND_CC_TOOLTIP}",
-    "helpUrl": window.docsBaseUri + "launchpad" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html")
+    "helpUrl": "launchpad"
   },
   {
     "type": "midi_lp_xy_to_note",

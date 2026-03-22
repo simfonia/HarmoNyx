@@ -21,3 +21,7 @@ temp_sketches/*
 # Processing
 processing-3.5.4/
 
+
+# Frontend Build
+/ui/dist/
+

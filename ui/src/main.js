@@ -52,15 +52,19 @@ const stageUI = UIUtils.initStagePanel();
 const invoke = HarmoNyxAPI.getInvoke();
 
 // --- 0. 執行更新檢查 ---
-// 從 Tauri 獲取當前版本動態檢查
 setTimeout(async () => {
     try {
-        const version = await window.__TAURI__.app.getVersion();
-        Updater.check(version);
+        const appApi = window.__TAURI__?.app || (window.__TAURI__?.core?.app);
+        if (appApi) {
+            const version = await appApi.getVersion();
+            Updater.check(version);
+        } else {
+            Updater.check('0.8.0'); 
+        }
     } catch (e) {
         console.error('Failed to get version:', e);
     }
-}, 1000);
+}, 1500);
 
 // --- 1. 註冊 Blockly 插件與 Polyfill ---
 if (window.FieldMultilineInput) {
@@ -76,7 +80,7 @@ class CustomFieldColour extends Blockly.FieldTextInput {
     updateColorView() {
         const color = this.getValue();
         if (!color || !this.borderRect_) return;
-        this.borderRect_.style.cssText = `fill: ${color} !important; fill-opacity: 1 !important; stroke: #fff !important; stroke-width: 1px;`;
+        this.borderRect_.style.cssText = `fill: ${color} !important; stroke: #fff !important; stroke-width: 1px;`;
         if (this.textElement_) {
             const r = parseInt(color.substring(1, 3), 16), g = parseInt(color.substring(3, 5), 16), b = parseInt(color.substring(5, 7), 16);
             const brightness = (r * 299 + g * 587 + b * 114) / 1000;
@@ -93,7 +97,6 @@ class CustomFieldColour extends Blockly.FieldTextInput {
 Blockly.fieldRegistry.register('field_colour', CustomFieldColour);
 
 // --- 2. 初始化 Blockly 工作區 ---
-// Scroll Options Plugin 準備
 const ScrollOptionsPlugin = window.ScrollOptions || (window.ScrollOptionsPlugin && window.ScrollOptionsPlugin.ScrollOptions);
 const scrollDragger = window.ScrollBlockDragger || (ScrollOptionsPlugin ? ScrollOptionsPlugin.ScrollBlockDragger : undefined);
 const scrollMetrics = window.ScrollMetricsManager || (ScrollOptionsPlugin ? ScrollOptionsPlugin.ScrollMetricsManager : undefined);
@@ -124,31 +127,50 @@ const workspace = Blockly.inject(blocklyDiv, {
     }
 });
 
-// 初始化 Scroll Options 參數
+// --- 【關鍵修復】右鍵說明選單 ---
+setTimeout(() => {
+    const registry = Blockly.ContextMenuRegistry.registry;
+    
+    // 1. 強制移除所有可能的內建說明 ID
+    ['blockHelp', 'help', 'block_help'].forEach(id => {
+        try { registry.unregister(id); } catch (e) {}
+    });
+
+    // 2. 註冊唯一的一個 NYX 說明項目
+    registry.register({
+        displayText: () => '說明',
+        preconditionFn: (scope) => (scope.block && scope.block.helpUrl) ? 'enabled' : 'hidden',
+        callback: (scope) => {
+            const block = scope.block;
+            const url = (typeof block.helpUrl === 'function') ? block.helpUrl() : block.helpUrl;
+            const lang = 'zh-hant';
+            const filename = `resources/docs/${url}_${lang}.html`;
+            
+            invoke('open_url', { url: filename }).catch(err => {
+                // 備援：嘗試不帶 resources 前綴的路徑 (針對某些環境)
+                invoke('open_url', { url: `${url}_${lang}.html` });
+            });
+        },
+        scopeType: Blockly.ContextMenuRegistry.ScopeType.BLOCK,
+        id: 'nyx_unique_help',
+        weight: 100,
+    });
+}, 1000);
+
 if (ScrollOptionsPlugin) {
     try {
         const scrollOptions = new ScrollOptionsPlugin(workspace);
         scrollOptions.init({
-            enableWheelScroll: true,
-            enableEdgeScroll: true,
-            edgeScrollOptions: {
-                slowBlockSpeed: 0.15,
-                fastBlockSpeed: 0.5,
-                slowMouseSpeed: 0.25,
-                fastMouseSpeed: 1.0,
-                fastBlockStartDistance: 80,
-                fastMouseStartDistance: 60
-            }
+            enableWheelScroll: true, enableEdgeScroll: true,
+            edgeScrollOptions: { slowBlockSpeed: 0.15, fastBlockSpeed: 0.5, slowMouseSpeed: 0.25, fastMouseSpeed: 1.0, fastBlockStartDistance: 80, fastMouseStartDistance: 60 }
         });
-    } catch (e) {
-        console.error('ScrollOptions init failed:', e);
-    }
+    } catch (e) { console.error('ScrollOptions init failed:', e); }
 }
 
 // --- 3. 核心功能與狀態管理 ---
 let isDirty = false;
 let currentFilename = '';
-let isProcessing = false; // 新增：追蹤目前是否正在執行 Processing
+let isProcessing = true; // 預設開啟，以接收啟動時的後端路徑訊息
 
 function setDirty(dirty) {
     if (workspace.isClearing && dirty) return;
@@ -222,24 +244,14 @@ function createDefaultBlocks() {
             const dom = Blockly.utils.xml.textToDom(DEFAULT_XML);
             Blockly.Xml.domToWorkspace(dom, workspace);
         } catch (e) {
-            console.error('Failed to load default blocks:', e);
-            // Fallback
             const setup = workspace.newBlock('processing_setup'); setup.initSvg(); setup.render(); setup.moveBy(20, 20);
             const draw = workspace.newBlock('processing_draw'); draw.initSvg(); draw.render(); draw.moveBy(20, 350);
         }
-        setTimeout(() => { 
-            workspace.isClearing = false; 
-            setDirty(false); 
-            debouncedUpdateLiveCode();
-        }, 100);
+        setTimeout(() => { workspace.isClearing = false; setDirty(false); debouncedUpdateLiveCode(); }, 100);
     }, 50);
 }
 
-const xmlUtils = {
-    textToDom: (t) => Blockly.utils.xml.textToDom(t),
-    workspaceToDom: (w) => Blockly.Xml.workspaceToDom(w),
-    domToPrettyText: (d) => Blockly.Xml.domToPrettyText(d)
-};
+const xmlUtils = { textToDom: (t) => Blockly.utils.xml.textToDom(t), workspaceToDom: (w) => Blockly.Xml.workspaceToDom(w), domToPrettyText: (d) => Blockly.Xml.domToPrettyText(d) };
 
 if (window.__TAURI__ && window.__TAURI__.event) {
     let recentHeader = false;
@@ -247,44 +259,26 @@ if (window.__TAURI__ && window.__TAURI__.event) {
         if (!isProcessing) return;
         const msg = e.payload.trim();
         if (!msg) { recentHeader = false; return; }
-
-        // 篩選條件：僅顯示開發與除錯相關訊息
         const isTagged = msg.startsWith('[USER]') || msg.startsWith('[DEV]') || msg.startsWith('[MSG]') || msg.startsWith('[WARN]') || msg.startsWith('[ERR]') || msg.startsWith('[!]');
-        // 注意：[INFO] 已被排除在顯示之外，因為超級舞台已有顯示
         const isHeader = msg.startsWith('---') || msg.includes('Available') || msg.includes('Devices:');
-        const isListItem = /^\s*\[\d+\]/.test(msg); // 匹配 [0] "COM1" 這種格式
-
+        const isListItem = /^\s*\[\d+\]/.test(msg);
         if (isHeader) recentHeader = true;
-        // 如果訊息太長（非 Tagged 訊息）可能是系統雜訊，除非是在 Header 之後
-        if (!isTagged && !isHeader && !isListItem) {
-            recentHeader = false; 
-            return;
-        }
-
+        if (!isTagged && !isHeader && !isListItem) { recentHeader = false; return; }
         if (isTagged || isHeader || (recentHeader && isListItem)) {
             let logType = 'info';
             if (msg.startsWith('[ERR]') || msg.startsWith('[!]')) logType = 'error';
             stageUI.appendLog(msg, logType);
         }
     });
-    window.__TAURI__.event.listen('processing-error', (e) => {
-        if (isProcessing) stageUI.appendLog(e.payload, 'error');
-    });
+    window.__TAURI__.event.listen('processing-error', (e) => { if (isProcessing) stageUI.appendLog(e.payload, 'error'); });
 }
 
 function initI18n() {
-    document.querySelectorAll('[data-i18n-title]').forEach(el => {
-        const key = el.getAttribute('data-i18n-title');
-        if (Blockly.Msg[key]) el.title = Blockly.Msg[key];
-    });
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (Blockly.Msg[key]) el.textContent = Blockly.Msg[key];
-    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => { const key = el.getAttribute('data-i18n-title'); if (Blockly.Msg[key]) el.title = Blockly.Msg[key]; });
+    document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (Blockly.Msg[key]) el.textContent = Blockly.Msg[key]; });
 }
 initI18n();
 
-// --- 4. 系統設定與範例選單 ---
 let currentLang = 'zh-hant';
 const settingsBtn = document.getElementById('settings-btn');
 const examplesBtn = document.getElementById('examples-btn');
@@ -300,47 +294,25 @@ function updateLangCheck(lang) {
     if (selectedEl) selectedEl.innerHTML = `<img src="/icons/done_24dp_FE2F89.png" class="nyx-icon-neon" style="width: 16px;">`;
 }
 
-settingsMenu.innerHTML = `
-    <div class="dropdown-item" id="restart-audio-item"><img src="/icons/rocket_launch_24dp_FE2F89.png" class="nyx-icon-neon"><span>重啟音訊</span></div>
-    <div class="dropdown-item" id="set-path-item"><img src="/icons/explore_24dp_FE2F89.png" class="nyx-icon-neon"><span>設定processing-java路徑</span></div>
-    <div class="dropdown-item has-submenu"><img src="/icons/language_24dp_FE2F89.png" class="nyx-icon-neon"><span>語言設定</span><span class="arrow">▶</span></div>
-    <div class="submenu">
-        <div class="dropdown-item lang-item" data-lang="zh-hant"><span class="lang-check" style="width:20px;"></span><span>正體中文</span></div>
-        <div class="dropdown-item lang-item" data-lang="en"><span class="lang-check" style="width:20px;"></span><span>English</span></div>
-    </div>
-`;
+settingsMenu.innerHTML = `<div class="dropdown-item" id="restart-audio-item"><img src="/icons/rocket_launch_24dp_FE2F89.png" class="nyx-icon-neon"><span>重啟音訊</span></div><div class="dropdown-item" id="set-path-item"><img src="/icons/explore_24dp_FE2F89.png" class="nyx-icon-neon"><span>設定processing-java路徑</span></div><div class="dropdown-item has-submenu"><img src="/icons/language_24dp_FE2F89.png" class="nyx-icon-neon"><span>語言設定</span><span class="arrow">▶</span></div><div class="submenu"><div class="dropdown-item lang-item" data-lang="zh-hant"><span class="lang-check" style="width:20px;"></span><span>正體中文</span></div><div class="dropdown-item lang-item" data-lang="en"><span class="lang-check" style="width:20px;"></span><span>English</span></div></div>`;
 
 document.body.addEventListener('click', async (e) => {
     if (e.target.closest('#set-path-item')) {
         const { open } = window.__TAURI__.dialog;
-        const selectedPath = await open({
-            multiple: false,
-            directory: false,
-            filters: [{ name: 'Processing Java', extensions: ['exe', ''] }]
-        });
-        if (selectedPath) {
-            await invoke('set_processing_path', { path: selectedPath });
-            alert("路徑已更新！");
-        }
+        const selectedPath = await open({ multiple: false, directory: false, filters: [{ name: 'Processing Java', extensions: ['exe', ''] }] });
+        if (selectedPath) { await invoke('set_processing_path', { path: selectedPath }); alert("路徑已更新！"); }
     }
 });
 
 settingsBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    updateLangCheck(currentLang);
+    e.stopPropagation(); updateLangCheck(currentLang);
     const rect = settingsBtn.getBoundingClientRect();
-    settingsMenu.style.top = `${rect.bottom + 5}px`;
-    settingsMenu.style.left = `${rect.left - 120}px`;
-    settingsMenu.classList.toggle('show');
-    examplesMenu.classList.remove('show');
+    settingsMenu.style.top = `${rect.bottom + 5}px`; settingsMenu.style.left = `${rect.left - 120}px`;
+    settingsMenu.classList.toggle('show'); examplesMenu.classList.remove('show');
 });
 
 settingsMenu.querySelectorAll('.lang-item').forEach(item => {
-    item.addEventListener('click', (e) => {
-        const lang = item.getAttribute('data-lang');
-        currentLang = lang; updateLangCheck(lang); e.stopPropagation();
-        alert("語系切換功能開發中，目前設定將於下次啟動時生效。");
-    });
+    item.addEventListener('click', (e) => { const lang = item.getAttribute('data-lang'); currentLang = lang; updateLangCheck(lang); e.stopPropagation(); alert("語系切換功能開發中，目前設定將於下次啟動時生效。"); });
 });
 
 examplesBtn.addEventListener('click', async (e) => {
@@ -349,171 +321,71 @@ examplesBtn.addEventListener('click', async (e) => {
         const examples = await invoke('list_examples');
         let html = '';
         examples.forEach(ex => {
-            if (ex.category) {
-                html += `<div class="dropdown-item has-submenu"><img src="/icons/folder_special_24dp_75FB4C.png" class="nyx-icon-purple" style="width:20px;"><span>${ex.category}</span><span class="arrow">▶</span></div>
-                         <div class="submenu">${ex.items.map(i => `<div class="dropdown-item example-item" data-path="${i.path}"><img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-blue" style="width:20px;"><span>${i.name}</span></div>`).join('')}</div>`;
-            } else {
-                html += `<div class="dropdown-item example-item" data-path="${ex.path}"><img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-blue" style="width:20px;"><span>${ex.name}</span></div>`;
-            }
+            if (ex.category) { html += `<div class="dropdown-item has-submenu"><img src="/icons/folder_special_24dp_75FB4C.png" class="nyx-icon-purple" style="width:20px;"><span>${ex.category}</span><span class="arrow">▶</span></div><div class="submenu">${ex.items.map(i => `<div class="dropdown-item example-item" data-path="${i.path}"><img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-blue" style="width:20px;"><span>${i.name}</span></div>`).join('')}</div>`; }
+            else { html += `<div class="dropdown-item example-item" data-path="${ex.path}"><img src="/icons/lyrics_24dp_75FB4C.png" class="nyx-icon-blue" style="width:20px;"><span>${ex.name}</span></div>`; }
         });
         examplesMenu.innerHTML = html || '<div class="dropdown-item">無範例</div>';
         examplesMenu.querySelectorAll('.example-item').forEach(item => {
-            item.onclick = async () => {
-                if (await checkUnsavedChanges()) {
-                    const content = await invoke('load_project', { path: item.getAttribute('data-path') });
-                    workspace.isClearing = true; workspace.clear();
-                    Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(content), workspace);
-                    currentFilename = item.getAttribute('data-path').split(/[\\/]/).pop();
-                    setTimeout(() => { workspace.isClearing = false; setDirty(false); }, 100);
-                }
-            };
+            item.onclick = async () => { if (await checkUnsavedChanges()) { const content = await invoke('load_project', { path: item.getAttribute('data-path') }); workspace.isClearing = true; workspace.clear(); Blockly.Xml.domToWorkspace(Blockly.utils.xml.textToDom(content), workspace); currentFilename = item.getAttribute('data-path').split(/[\\/]/).pop(); setTimeout(() => { workspace.isClearing = false; setDirty(false); }, 100); } };
         });
         const rect = examplesBtn.getBoundingClientRect();
-        examplesMenu.style.top = `${rect.bottom + 5}px`;
-        examplesMenu.style.left = `${rect.left}px`;
-        examplesMenu.classList.toggle('show');
-        settingsMenu.classList.remove('show');
+        examplesMenu.style.top = `${rect.bottom + 5}px`; examplesMenu.style.left = `${rect.left}px`;
+        examplesMenu.classList.toggle('show'); settingsMenu.classList.remove('show');
     } catch (err) { console.error(err); }
 });
 
 document.addEventListener('click', () => { settingsMenu.classList.remove('show'); examplesMenu.classList.remove('show'); });
 
-// --- 5. 檔案操作與執行控制 ---
 document.getElementById('new-btn').onclick = async () => { if (await checkUnsavedChanges()) { currentFilename = ''; createDefaultBlocks(); } };
-
 document.getElementById('open-btn').onclick = async () => {
     if (await checkUnsavedChanges()) {
         const path = await window.__TAURI__.dialog.open({ filters: [{ name: 'HarmoNyx', extensions: ['nyx', 'xml'] }] });
-        if (path) {
-            const content = await invoke('load_project', { path });
-            workspace.isClearing = true; workspace.clear();
-            Blockly.Xml.domToWorkspace(xmlUtils.textToDom(content), workspace);
-            currentFilename = path.split(/[\\/]/).pop();
-            setTimeout(() => { workspace.isClearing = false; setDirty(false); }, 100);
-        }
+        if (path) { const content = await invoke('load_project', { path }); workspace.isClearing = true; workspace.clear(); Blockly.Xml.domToWorkspace(xmlUtils.textToDom(content), workspace); currentFilename = path.split(/[\\/]/).pop(); setTimeout(() => { workspace.isClearing = false; setDirty(false); }, 100); }
     }
 };
-
 document.getElementById('save-btn').onclick = async () => {
     const path = await window.__TAURI__.dialog.save({ filters: [{ name: 'HarmoNyx', extensions: ['nyx', 'xml'] }] });
-    if (path) {
-        await invoke('save_project', { xmlContent: xmlUtils.domToPrettyText(xmlUtils.workspaceToDom(workspace)), path });
-        currentFilename = path.split(/[\\/]/).pop(); setDirty(false);
-    }
+    if (path) { await invoke('save_project', { xmlContent: xmlUtils.domToPrettyText(xmlUtils.workspaceToDom(workspace)), path }); currentFilename = path.split(/[\\/]/).pop(); setDirty(false); }
 };
 
 document.getElementById('run-btn').onclick = async () => {
     document.getElementById('run-btn').classList.add('is-running');
-    if (stageUI.clearLog) stageUI.clearLog(); // 清除舊日誌
-    isProcessing = true; // 開始執行
-    
+    if (stageUI.clearLog) stageUI.clearLog(); isProcessing = true;
     const code = Blockly.Processing.workspaceToCode(workspace);
-    
-    try {
-        await invoke('run_processing', { code });
-    } catch (err) {
-        if (err === "ERR_NO_PROCESSING") {
-            const { message, ask, open } = window.__TAURI__.dialog;
-            await message('找不到 Processing 執行環境 (processing-java)。\n\n系統搜尋了：\n1. C:\\processing-3.5.4\n2. HarmoNyx 內建目錄\n3. 系統 PATH\n\n請手動選取 processing-java.exe 的位置, 它通常位於 Processing 安裝目錄。', { title: '執行環境缺失', kind: 'warning' });
-            
-            const selectedPath = await open({
-                multiple: false,
-                directory: false,
-                filters: [{ name: 'Processing Java', extensions: ['exe', ''] }]
-            });
-
-            if (selectedPath) {
-                await invoke('set_processing_path', { path: selectedPath });
-                // 儲存後重試一次
-                try {
-                    await invoke('run_processing', { code });
-                } catch (retryErr) {
-                    alert('執行失敗：' + retryErr);
-                }
-            } else {
-                isProcessing = false;
-            }
-        } else {
-            alert('執行失敗：' + err);
-            isProcessing = false;
-        }
-    } finally {
-        document.getElementById('run-btn').classList.remove('is-running');
-    }
-};
-
-document.getElementById('stop-btn').onclick = () => {
-    isProcessing = false; // 停止接收日誌
-    invoke('stop_processing');
-};
-
-// --- 8. 啟動與初始化 ---
-setTimeout(async () => { 
-    Blockly.svgResize(workspace); 
-    UIUtils.initMinimap(workspace); 
-    UIUtils.initSearch(workspace); 
-    setTimeout(createDefaultBlocks, 200);
-
-    // 啟動時偵測執行環境
-    try {
-        const hasProcessing = await invoke('run_processing', { code: "exit();" }); // 嘗試執行最小代碼測試路徑
-    } catch (err) {
+    try { await invoke('run_processing', { code }); }
+    catch (err) {
         if (err === "ERR_NO_PROCESSING") {
             const { message, open } = window.__TAURI__.dialog;
-            await message('找不到 Processing 執行環境 (processing-java)。\n\n系統搜尋了：\n1. C:\\processing-3.5.4\n2. HarmoNyx 內建目錄\n3. 系統 PATH\n\n請選取 processing-java.exe 的位置, 它通常位於 Processing 安裝目錄。', { title: '執行環境缺失', kind: 'warning' });
-            
-            const selectedPath = await open({
-                multiple: false,
-                directory: false,
-                filters: [{ name: 'Processing Java', extensions: ['exe', ''] }]
-            });
+            await message('找不到 Processing 執行環境...', { title: '執行環境缺失', kind: 'warning' });
+            const selectedPath = await open({ multiple: false, directory: false, filters: [{ name: 'Processing Java', extensions: ['exe', ''] }] });
+            if (selectedPath) { await invoke('set_processing_path', { path: selectedPath }); try { await invoke('run_processing', { code }); } catch (retryErr) { alert('執行失敗：' + retryErr); } }
+            else { isProcessing = false; }
+        } else { alert('執行失敗：' + err); isProcessing = false; }
+    } finally { document.getElementById('run-btn').classList.remove('is-running'); }
+};
 
-            if (selectedPath) {
-                await invoke('set_processing_path', { path: selectedPath });
-            }
-        }
-    }
+document.getElementById('stop-btn').onclick = () => { isProcessing = false; invoke('stop_processing'); };
+
+setTimeout(async () => { 
+    Blockly.svgResize(workspace); UIUtils.initMinimap(workspace); UIUtils.initSearch(workspace); 
+    setTimeout(createDefaultBlocks, 200);
+    try { await invoke('run_processing', { code: "exit();" }); } catch (err) {}
 }, 300);
 
 workspace.addChangeListener((e) => {
     if (workspace.isClearing) return;
-    
-    // --- 1. 檔案狀態與 Live Code 更新 (僅針對非 UI 事件) ---
     if (!e.isUiEvent) {
-        const isBlockChange = [Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_DELETE, Blockly.Events.VAR_CREATE, Blockly.Events.VAR_RENAME, Blockly.Events.VAR_DELETE].includes(e.type);
-        if (isBlockChange) {
-            setDirty(true);
-            debouncedUpdateLiveCode();
+        if ([Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_DELETE, Blockly.Events.VAR_CREATE, Blockly.Events.VAR_RENAME, Blockly.Events.VAR_DELETE].includes(e.type)) {
+            setDirty(true); debouncedUpdateLiveCode();
         }
     }
-
-    // --- 2. Smart Panel: Visual Help (支援多種事件觸發) ---
     let targetBlockId = null;
-
-    // A. 針對 UI 點擊或選擇事件 (Click / Selected)
-    if (e.type === Blockly.Events.UI && (e.element === 'click' || e.element === 'selected')) {
-        targetBlockId = e.blockId || e.newValue;
-    } else if (e.type === 'selected' || e.type === 'click') { // 新版事件備援
-        targetBlockId = e.blockId || e.newValue;
-    }
-    
-    // B. 針對積木操作事件 (Move / Create / Change) - 操作積木時也視為關注焦點
-    // 注意：BLOCK_DELETE 不觸發，因為積木已消失
-    else if ([Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE].includes(e.type)) {
-        targetBlockId = e.blockId;
-    }
-
-    if (targetBlockId) {
-        const block = workspace.getBlockById(targetBlockId);
-        // 只有當該積木存在且為當前選取積木時才更新 (避免干擾)
-        // 但為了流暢體驗，若操作事件發生，即使尚未 Selected 也嘗試更新
-        if (block) {
-             updateVisualHelp(block);
-        }
-    }
+    if (e.type === Blockly.Events.UI && (e.element === 'click' || e.element === 'selected')) targetBlockId = e.blockId || e.newValue;
+    else if (e.type === 'selected' || e.type === 'click') targetBlockId = e.blockId || e.newValue;
+    else if ([Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE].includes(e.type)) targetBlockId = e.blockId;
+    if (targetBlockId) { const block = workspace.getBlockById(targetBlockId); if (block) updateVisualHelp(block); }
 });
 
-// --- Smart Panel Functions ---
 let liveCodeTimeout;
 function debouncedUpdateLiveCode() {
     clearTimeout(liveCodeTimeout);
@@ -530,44 +402,19 @@ function updateVisualHelp(block) {
     const titleEl = document.getElementById('help-title');
     const descEl = document.getElementById('help-desc');
     const previewEl = document.getElementById('help-preview');
-
     if (!placeholder || !content) return;
-
-    placeholder.style.display = 'none';
-    content.style.display = 'block';
-
-    // 1. Title
-    // 嘗試從積木定義訊息中獲取名稱，或使用 Type
+    placeholder.style.display = 'none'; content.style.display = 'block';
     let title = block.type;
-    // 嘗試尋找對應的 MSG 鍵值
-    for (const key in Blockly.Msg) {
-        if (block.type.toUpperCase() === key) {
-            title = Blockly.Msg[key];
-            break;
-        }
-    }
-    // 如果是變數相關，顯示變數名稱
-    if (block.type === 'variables_get' || block.type === 'variables_set') {
-         title = `${Blockly.Msg[block.type.toUpperCase()] || block.type} (${block.getField('VAR').getText()})`;
-    }
+    for (const key in Blockly.Msg) { if (block.type.toUpperCase() === key) { title = Blockly.Msg[key]; break; } }
+    if (block.type === 'variables_get' || block.type === 'variables_set') title = `${Blockly.Msg[block.type.toUpperCase()] || block.type} (${block.getField('VAR').getText()})`;
     titleEl.textContent = title;
-
-    // 2. Description (Tooltip)
     let tooltip = block.getTooltip();
     if (typeof tooltip === 'function') tooltip = tooltip();
     descEl.innerHTML = tooltip ? tooltip.replace(/\n/g, '<br>') : '無說明文件';
-
-    // 3. Preview (渲染靜態 SVG)
     previewEl.innerHTML = '';
     try {
-        // 簡易渲染：這裡暫時只顯示 Type 作為預覽，因為完整渲染 SVG 需要複製 Block 結構
-        // 未來可考慮使用 Blockly.utils.xml.blockToDom + workspace.render
         const typeLabel = document.createElement('span');
-        typeLabel.style.color = '#aaa';
-        typeLabel.style.fontFamily = 'monospace';
-        typeLabel.textContent = `<${block.type}>`;
+        typeLabel.style.color = '#aaa'; typeLabel.style.fontFamily = 'monospace'; typeLabel.textContent = `<${block.type}>`;
         previewEl.appendChild(typeLabel);
-    } catch (e) {
-        console.error('Preview render error:', e);
-    }
+    } catch (e) { console.error('Preview render error:', e); }
 }

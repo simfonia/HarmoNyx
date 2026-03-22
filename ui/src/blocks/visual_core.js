@@ -120,7 +120,7 @@ Blockly.Blocks['visual_stage_setup'] = {
       "nextStatement": null,
       "colour": "#2C3E50",
       "tooltip": "%{BKY_VISUAL_STAGE_SETUP_TOOLTIP}%{BKY_HELP_HINT}",
-      "helpUrl": window.docsBaseUri + "visual_stage" + (Blockly.Msg['HELP_LANG_SUFFIX'] || "_zh-hant.html")
+      "helpUrl": "visual_stage"
     });
     this.setInputsInline(false);
   }

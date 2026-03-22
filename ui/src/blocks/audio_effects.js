@@ -67,10 +67,18 @@ Blockly.Blocks['sb_set_effect_param'] = {
   init: function () {
     var instance = this;
     var getEffectOptions = function () {
-      var options = [["ADSR", "adsr"], [Blockly.Msg['SB_SET_PANNING_MESSAGE'] || "Panning", "panning"]];
+      var panningLabel = Blockly.Msg['SB_SET_PANNING_MESSAGE'] || "Panning";
+      var options = [["ADSR", "adsr"], [panningLabel, "panning"]];
       var target = instance.getFieldValue('TARGET');
-      if (!target || target === Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']) return [[Blockly.Msg['SB_NO_INSTRUMENT_SELECTED'] || "(No Instrument)", "none"]];
+      
+      // 確保基礎選項始終存在
+      if (!target || target === Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']) {
+        return options;
+      }
+
       var workspace = instance.workspace;
+      if (!workspace) return options;
+
       var blocks = workspace.getAllBlocks(false);
       var container = blocks.find(b => b.type === 'sb_instrument_container' && b.getFieldValue('NAME') === target);
       if (container) {
@@ -95,7 +103,7 @@ Blockly.Blocks['sb_set_effect_param'] = {
     this.setPreviousStatement(true, null); this.setNextStatement(true, null);
     this.setColour(Blockly.Msg['EFFECTS_HUE'] || "#8E44AD");
     this.setTooltip(Blockly.Msg['SB_SET_EFFECT_PARAM_TOOLTIP']);
-    this.updateShape_('panning');
+    this.updateShape_('adsr');
   },
   mutationToDom: function () {
     var container = Blockly.utils.xml.createElement('mutation');

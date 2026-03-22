@@ -1,3 +1,20 @@
+## AppData 快取機制 (Self-Healing Cache)
+為了解決 Windows `Program Files` 權限限制與 Junction 鎖定問題，HarmoNyx 採用「初始化快取」策略：
+1.  **啟動檢查**: `lib.rs` 的 `ensure_samples_cache` 在 `setup` 階段執行。
+2.  **時間戳比對**: 檢查 `resource_dir/resources/samples` 與 `app_data_dir/samples_cache` 的修改時間。若來源較新，則執行全量複製。
+3.  **掛載**: 執行 Processing 時，直接將 `samples_cache` 連結至 Sketch 的 `data/`。
+
+## WiX 打包注意事項
+- **中文檔名**: WiX 3.x 對非 ASCII 檔名支援極差 (LGHT0311)。解決方案是將 `docs/` 下的 HTML 檔名全部改為英文 (如 `effects_zh.html`)。
+- **語言設定**: `tauri.conf.json` 需設定 `wix.language = "zh-TW"` 以支援安裝介面中文。
+- **首次啟動**: 安裝程式啟動的 Process 可能繼承錯誤的環境變數，建議手動重啟。
+
+## Blockly 右鍵選單攔截
+為了防止 Blockly 自動生成無效的 "Help" 選項，我們在 `main.js` 中攔截了 `Blockly.ContextMenu.populate_`：
+1.  過濾掉所有 `text` 為 "Help" 或 "說明" 的項目。
+2.  手動插入一個新的 "說明" 項目，並綁定 `block.showHelp()`。
+3.  `showHelp` 覆寫為呼叫 Tauri 的 `open_url` 指令。
+
 ## Tauri 資源打包與路徑映射
 - **問題**: 當使用 `resources: ["../resources/**/*"]` 進行打包時，WiX/Tauri 預設會保留相對路徑結構，導致安裝後出現 `_up_` 資料夾，破壞程式的路徑查找邏輯。
 - **解法**: 使用物件語法進行明確映射：`{ "src": "../resources", "target": "resources" }`。這會將外部資源直接平鋪到安裝目錄下的 `resources/`，確保開發與生產環境的路徑結構一致。

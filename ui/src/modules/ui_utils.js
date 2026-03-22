@@ -259,8 +259,14 @@ export const UIUtils = {
     injectNaNShield: () => {
         const originalSetAttribute = Element.prototype.setAttribute;
         Element.prototype.setAttribute = function(name, value) {
+            // 強化檢查：針對 transform="translate(NaN,NaN)"
+            if (typeof value === 'string' && (value.includes('NaN') || value.includes('undefined'))) {
+                if (name === 'transform') return; // 直接忽略無效的 transform
+                if (name === 'x' || name === 'y' || name === 'width' || name === 'height' || name === 'd') return;
+            }
+            // 針對數值類型的 NaN
             if ((name === 'x' || name === 'y' || name === 'width' || name === 'height' || name === 'd') && 
-                (value === 'NaN' || typeof value === 'undefined')) {
+                (Number.isNaN(value) || typeof value === 'undefined')) {
                 return;
             }
             originalSetAttribute.apply(this, arguments);
