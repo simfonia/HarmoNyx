@@ -271,5 +271,57 @@ export const UIUtils = {
             }
             originalSetAttribute.apply(this, arguments);
         };
+    },
+
+    /**
+     * --- Orphan Block System (Ported from #stage) ---
+     */
+    VALID_ROOTS: [
+        'processing_setup',
+        'processing_draw',
+        'processing_exit',
+        'ui_key_event',
+        'sb_perform',
+        'sb_tone_loop',
+        'sb_instrument_container',
+        'sb_define_chord',
+        'sb_serial_data_received',
+        'midi_on_note',
+        'midi_off_note',
+        'midi_on_controller_change',
+        'procedures_defnoreturn',
+        'procedures_defreturn',
+        'sb_comment'
+    ],
+
+    updateOrphanBlocks: (ws) => {
+        if (!ws || ws.isDragging()) return;
+
+        // 使用 Blockly 的事件群組功能來避免 undo 堆疊污染
+        Blockly.Events.setGroup(true);
+        try {
+            const topBlocks = ws.getTopBlocks(false);
+            topBlocks.forEach(topBlock => {
+                const isOrphan = !UIUtils.VALID_ROOTS.includes(topBlock.type);
+                
+                // 如果是孤兒，則其所有子積木也都視為孤兒 (變灰)
+                // 如果是合法根，則其所有子積木都正常顯示
+                topBlock.getDescendants(false).forEach(block => {
+                    // 防禦性程式設計：確保方法存在 (Blockly 版本相容)
+                    if (block.setDisabledReason) {
+                        const hasOrphanReason = block.hasDisabledReason('orphan');
+                        // 僅在狀態改變時才觸發更新，減少 DOM 重繪
+                        if (hasOrphanReason !== isOrphan) {
+                            block.setDisabledReason(isOrphan, 'orphan');
+                        }
+                    } else if (block.setDisabled) {
+                        // 舊版備援
+                        block.setDisabled(isOrphan);
+                    }
+                });
+            });
+        } finally {
+            Blockly.Events.setGroup(false);
+        }
     }
 };

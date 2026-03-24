@@ -376,7 +376,9 @@ workspace.addChangeListener((e) => {
     if (workspace.isClearing) return;
     if (!e.isUiEvent) {
         if ([Blockly.Events.BLOCK_MOVE, Blockly.Events.BLOCK_CREATE, Blockly.Events.BLOCK_CHANGE, Blockly.Events.BLOCK_DELETE, Blockly.Events.VAR_CREATE, Blockly.Events.VAR_RENAME, Blockly.Events.VAR_DELETE].includes(e.type)) {
-            setDirty(true); debouncedUpdateLiveCode();
+            setDirty(true); 
+            debouncedUpdateLiveCode();
+            debouncedOrphanUpdate();
         }
     }
     let targetBlockId = null;
@@ -394,6 +396,14 @@ function debouncedUpdateLiveCode() {
         const codeEl = document.getElementById('generated-code');
         if (codeEl) codeEl.textContent = code;
     }, 500);
+}
+
+let orphanTimeout;
+function debouncedOrphanUpdate() {
+    clearTimeout(orphanTimeout);
+    orphanTimeout = setTimeout(() => {
+        UIUtils.updateOrphanBlocks(workspace);
+    }, 100);
 }
 
 function updateVisualHelp(block) {
