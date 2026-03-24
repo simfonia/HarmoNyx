@@ -15,10 +15,26 @@
         <field name="TYPE">PIANO</field>
         <next>
           <block type="sb_set_adsr" id="piano_adsr">
-            <field name="A">0.01</field>
-            <field name="D">0.1</field>
-            <field name="S">0.5</field>
-            <field name="R">0.5</field>
+            <value name="A">
+              <shadow type="math_number" id="-$tH0VI+zF3G`iH6Pc;*">
+                <field name="NUM">0.01</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="l0GLw_NAz?icBKv5!*WM">
+                <field name="NUM">0.1</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="cu}M)Tr;x^`|[zRgX1qF">
+                <field name="NUM">0.5</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id=":w{*J}!ozo?^.XZ6z%!M">
+                <field name="NUM">0.5</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>

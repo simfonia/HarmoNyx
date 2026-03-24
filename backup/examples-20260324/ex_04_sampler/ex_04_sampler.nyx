@@ -36,10 +36,26 @@
             <field name="TYPE">PIANO</field>
             <next>
               <block type="sb_set_adsr" id="Lm|eJGD-`!-zML)zLi1J" disabled-reasons="MANUALLY_DISABLED">
-                <field name="A">0.01</field>
-                <field name="D">0.1</field>
-                <field name="S">0.5</field>
-                <field name="R">0.5</field>
+                <value name="A">
+                  <shadow type="math_number" id="P=yln5lv,(#,Ay!]o(Ka">
+                    <field name="NUM">0.01</field>
+                  </shadow>
+                </value>
+                <value name="D">
+                  <shadow type="math_number" id="T]up-%h{#6t(nit@9mf3">
+                    <field name="NUM">0.1</field>
+                  </shadow>
+                </value>
+                <value name="S">
+                  <shadow type="math_number" id="q{N(dF%qZZ4Frn$CeWd]">
+                    <field name="NUM">0.5</field>
+                  </shadow>
+                </value>
+                <value name="R">
+                  <shadow type="math_number" id="_!WU49d$M?6UGhxt+HxJ">
+                    <field name="NUM">0.5</field>
+                  </shadow>
+                </value>
                 <next>
                   <block type="sb_set_instrument_volume" id="YQZbVNaU.fKo{e%URegt">
                     <field name="NAME">Lead</field>

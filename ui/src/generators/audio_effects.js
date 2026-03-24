@@ -159,14 +159,13 @@ Blockly.Processing.registerGenerator('sb_set_effect_param', function(block) {
 });
 
 Blockly.Processing.registerGenerator('sb_update_adsr', function(block) {
-  const target = block.getFieldValue('TARGET');
+  const targetName = block.getFieldValue('TARGET');
+  const target = window.SB_Utils.getInstrumentJavaName(targetName);
   const a = Blockly.Processing.valueToCode(block, 'A', Blockly.Processing.ORDER_ATOMIC) || "0.01";
   const d = Blockly.Processing.valueToCode(block, 'D', Blockly.Processing.ORDER_ATOMIC) || "0.1";
   const s = Blockly.Processing.valueToCode(block, 'S', Blockly.Processing.ORDER_ATOMIC) || "0.5";
   const r = Blockly.Processing.valueToCode(block, 'R', Blockly.Processing.ORDER_ATOMIC) || "0.5";
-  let code = `instrumentADSR.put("${target}", new float[]{floatVal(${a}), floatVal(${d}), floatVal(${s}), floatVal(${r})});
-`;
-  code += `if (currentInstrument.equals("${target}")) { adsrA = floatVal(${a}); adsrD = floatVal(${d}); adsrS = floatVal(${s}); adsrR = floatVal(${r}); if (cp5 != null) { cp5.getController("adsrA").setValue(adsrA); cp5.getController("adsrD").setValue(adsrD); cp5.getController("adsrS").setValue(adsrS); cp5.getController("adsrR").setValue(adsrR); } }
-`;
+  let code = `instrumentADSR.put(${target}, new float[]{floatVal(${a}), floatVal(${d}), floatVal(${s}), floatVal(${r})});\n`;
+  code += `if (currentInstrument.equals(${target})) { adsrA = floatVal(${a}); adsrD = floatVal(${d}); adsrS = floatVal(${s}); adsrR = floatVal(${r}); if (cp5 != null) { try { cp5.getController("adsrA").setValue(adsrA); cp5.getController("adsrD").setValue(adsrD); cp5.getController("adsrS").setValue(adsrS); cp5.getController("adsrR").setValue(adsrR); } catch(Exception e){} } }\n`;
   return code;
 });

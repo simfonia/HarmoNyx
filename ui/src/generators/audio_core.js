@@ -103,10 +103,10 @@ Blockly.Processing.registerGenerator('sb_melodic_sampler', function(block) {
 Blockly.Processing.registerGenerator('sb_set_adsr', function(block) {
   if (!Blockly.Processing.currentGenInstrumentName) return '// sb_set_adsr must be inside sb_instrument_container\n';
   
-  const a = Blockly.Processing.valueToCode(block, 'A', Blockly.Processing.ORDER_ATOMIC) || '0.01';
-  const d = Blockly.Processing.valueToCode(block, 'D', Blockly.Processing.ORDER_ATOMIC) || '0.1';
-  const s = Blockly.Processing.valueToCode(block, 'S', Blockly.Processing.ORDER_ATOMIC) || '0.5';
-  const r = Blockly.Processing.valueToCode(block, 'R', Blockly.Processing.ORDER_ATOMIC) || '0.5';
+  const a = block.getFieldValue('A') || '0.05';
+  const d = block.getFieldValue('D') || '0.2';
+  const s = block.getFieldValue('S') || '0.5';
+  const r = block.getFieldValue('R') || '0.5';
   
   return `instrumentADSR.put("${Blockly.Processing.currentGenInstrumentName}", new float[]{(float)${a}, (float)${d}, (float)${s}, (float)${r}});\n`;
 });

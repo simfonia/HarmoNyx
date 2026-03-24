@@ -232,17 +232,54 @@ Blockly.Blocks['sb_instrument_container'] = {
 // ADSR
 Blockly.Blocks['sb_set_adsr'] = {
   init: function () {
-    this.appendDummyInput().appendField(Blockly.Msg['SB_SET_ADSR_MESSAGE']);
-    this.appendValueInput("A").setCheck("Number").appendField("A (Attack)");
-    this.appendValueInput("D").setCheck("Number").appendField("D (Decay)");
-    this.appendValueInput("S").setCheck("Number").appendField("S (Sustain)");
-    this.appendValueInput("R").setCheck("Number").appendField("R (Release)");
-    this.setPreviousStatement(true, null);
-    this.setNextStatement(true, null);
-    this.setColour(Blockly.Msg['INSTRUMENT_CONTROL_HUE'] || "#E74C3C");
-    this.setTooltip(Blockly.Msg['SB_SET_ADSR_TOOLTIP']);
-  },
-  onchange: function () {
+    this.jsonInit({
+      "type": "sb_set_adsr",
+      "message0": "%{BKY_SB_SET_ADSR_MESSAGE} A %1 D %2 S %3 R %4",
+      "args0": [
+        { "type": "field_number", "name": "A", "value": 0.05, "min": 0, "max": 10, "precision": 0.01 },
+        { "type": "field_number", "name": "D", "value": 0.2, "min": 0, "max": 10, "precision": 0.01 },
+        { "type": "field_number", "name": "S", "value": 0.5, "min": 0, "max": 1, "precision": 0.01 },
+        { "type": "field_number", "name": "R", "value": 0.5, "min": 0, "max": 10, "precision": 0.01 }
+      ],
+      "message1": "%1",
+      "args1": [
+        { "type": "field_adsr", "name": "VISUAL", "a": 0.05, "d": 0.2, "s": 0.5, "r": 0.5 }
+      ],
+      "previousStatement": null,
+      "nextStatement": null,
+      "colour": "%{BKY_INSTRUMENT_CONTROL_HUE}",
+      "tooltip": "%{BKY_SB_SET_ADSR_TOOLTIP}",
+      "extensions": ["audio_adsr_visual_sync"]
+    });
+  }
+};
+
+// Register Mutators
+Blockly.Extensions.register('audio_adsr_visual_sync', function() {
+  const block = this;
+  const updateVisual = () => {
+    if (block.disposed) return;
+    const a = parseFloat(block.getFieldValue('A')) || 0;
+    const d = parseFloat(block.getFieldValue('D')) || 0;
+    const s = parseFloat(block.getFieldValue('S')) || 0;
+    const r = parseFloat(block.getFieldValue('R')) || 0;
+    const visualField = block.getField('VISUAL');
+    if (visualField && visualField.updateParams) {
+      visualField.updateParams(a, d, s, r);
+    }
+  };
+  
+  // 初始同步
+  setTimeout(() => {
+    if (!block.disposed) updateVisual();
+  }, 100);
+
+  block.setOnChange(function(e) {
+    if (e.type === Blockly.Events.BLOCK_CHANGE && e.blockId === block.id) {
+      updateVisual();
+    }
+    
+    // Original Warning Logic
     if (!this.workspace || this.isInFlyout) return;
     let parent = this.getParent();
     while (parent && parent.type !== 'sb_instrument_container') { parent = parent.getParent(); }
@@ -253,10 +290,9 @@ Blockly.Blocks['sb_set_adsr'] = {
     } else {
       this.setWarningText(null);
     }
-  }
-};
+  });
+});
 
-// Register Mutators
 Blockly.Extensions.registerMutator('harmonic_mutator', window.SB_Utils.HARMONIC_PARTIALS_MUTATOR, undefined, ['sb_harmonic_partial_item']);
 Blockly.Extensions.registerMutator('additive_mutator', window.SB_Utils.ADDITIVE_SYNTH_MUTATOR, undefined, ['sb_additive_synth_item']);
 Blockly.Extensions.registerMutator('melodic_sampler_mutator', window.SB_Utils.MELODIC_SAMPLER_MUTATOR, undefined);

@@ -77,10 +77,26 @@
         <field name="TYPE">TRIANGLE</field>
         <next>
           <block type="sb_set_adsr" id="iiOl5(jI9Qwk@ig]lGJ6">
-            <field name="A">0.02</field>
-            <field name="D">0.1</field>
-            <field name="S">0.3</field>
-            <field name="R">0.2</field>
+            <value name="A">
+              <shadow type="math_number" id="#I3Ib8FTTfhD5Qe@4D/E">
+                <field name="NUM">0.02</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="u@GT)mjtqP{bnpC%bscI">
+                <field name="NUM">0.1</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="M(KwS6@=.D`Qoh/m5PIh">
+                <field name="NUM">0.3</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id="r1k3l^%Ra(3=v4pT-x,8">
+                <field name="NUM">0.2</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>

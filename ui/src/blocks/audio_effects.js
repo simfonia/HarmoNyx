@@ -159,12 +159,16 @@ Blockly.Blocks['sb_set_effect_param'] = {
 
 Blockly.Blocks['sb_update_adsr'] = {
   init: function () {
-    this.appendDummyInput().appendField((Blockly.Msg['SB_UPDATE_ADSR_TITLE'] || "更新 %1 的 ADSR").split('%1')[0]).appendField(window.SB_Utils.createInstrumentField(Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']), "TARGET");
-    this.appendValueInput("A").setCheck("Number").appendField("A");
-    this.appendValueInput("D").setCheck("Number").appendField("D");
-    this.appendValueInput("S").setCheck("Number").appendField("S");
-    this.appendValueInput("R").setCheck("Number").appendField("R");
-    this.setPreviousStatement(true, null); this.setNextStatement(true, null);
+    this.appendDummyInput()
+      .appendField((Blockly.Msg['SB_UPDATE_ADSR_TITLE'] || "更新 %1 的 ADSR").split('%1')[0])
+      .appendField(window.SB_Utils.createInstrumentField(Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']), "TARGET");
+    this.appendValueInput("A").setCheck("Number").appendField(" A");
+    this.appendValueInput("D").setCheck("Number").appendField(" D");
+    this.appendValueInput("S").setCheck("Number").appendField(" S");
+    this.appendValueInput("R").setCheck("Number").appendField(" R");
+    this.setPreviousStatement(true, null); 
+    this.setNextStatement(true, null);
+    this.setInputsInline(true);
     this.setColour(Blockly.Msg['INSTRUMENT_CONTROL_HUE'] || "#D22F73");
     this.setTooltip(Blockly.Msg['SB_UPDATE_ADSR_TOOLTIP']);
   }

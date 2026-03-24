@@ -1,5 +1,6 @@
 /**
- * WaveCode Visualizer Module - 多重註冊同步版 (光暈與動態 Sustain 優化)
+ * HarmoNyx Visualizer Module
+ * Ported from WaveCode (FieldADSR & EnvelopeManager)
  */
 
 export class FieldADSR extends Blockly.Field {
@@ -153,6 +154,8 @@ export class FieldADSR extends Blockly.Field {
 }
 
 Blockly.fieldRegistry.register('field_adsr', FieldADSR);
+Blockly.FieldADSR = FieldADSR;
+window.FieldADSR = FieldADSR;
 
 /**
  * 全域包絡線管理員
@@ -184,103 +187,3 @@ export const EnvelopeManager = {
 };
 
 window.EnvelopeManager = EnvelopeManager;
-
-/**
- * 即時示波器 (Oscilloscope) - 支援 Clipping 警告
- */
-export const Oscilloscope = {
-    canvas: null,
-    ctx: null,
-    _data: [],
-    _isClipped: false,
-
-    init(canvasId) {
-        this.canvas = document.getElementById(canvasId);
-        if (!this.canvas) return;
-        this.ctx = this.canvas.getContext('2d');
-        
-        let lastUpdateTime = 0;
-
-        if (window.__TAURI__) {
-            window.__TAURI__.event.listen('waveform', (event) => {
-                const payload = event.payload;
-                this._data = payload.data || [];
-                this._isClipped = payload.clipped || false;
-                lastUpdateTime = performance.now();
-                this.draw();
-            });
-        }
-
-        setInterval(() => {
-            if (performance.now() - lastUpdateTime > 100 && this._data.length > 0) {
-                this._data = [];
-                this._isClipped = false;
-                this.clear();
-            }
-        }, 50);
-    },
-
-    clear() {
-        if (!this.ctx) return;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-        this.ctx.clearRect(0, 0, w, h);
-        
-        this.ctx.beginPath();
-        this.ctx.strokeStyle = '#2ecc71';
-        this.ctx.globalAlpha = 0.3;
-        this.ctx.lineWidth = 2;
-        this.ctx.moveTo(0, h / 2);
-        this.ctx.lineTo(w, h / 2);
-        this.ctx.stroke();
-        this.ctx.globalAlpha = 1.0;
-    },
-
-    draw() {
-        if (!this.ctx) return;
-        const ctx = this.ctx;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
-
-        if (!this._data.length) {
-            this.clear();
-            return;
-        }
-
-        ctx.clearRect(0, 0, w, h);
-
-        ctx.beginPath();
-        ctx.strokeStyle = this._isClipped ? '#e74c3c' : '#2ecc71';
-        ctx.lineWidth = 2;
-        ctx.lineJoin = 'round';
-
-        const sliceWidth = w / this._data.length;
-        let x = 0;
-
-        for (let i = 0; i < this._data.length; i++) {
-            const v = this._data[i];
-            const y = (h / 2) - (v * h / 2);
-
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-
-            x += sliceWidth;
-        }
-        ctx.stroke();
-
-        if (this._isClipped) {
-            ctx.fillStyle = '#e74c3c';
-            ctx.font = 'bold 16px Arial';
-            ctx.textAlign = 'right';
-            ctx.fillText('CLIP', w - 10, 25);
-            
-            ctx.setLineDash([5, 5]);
-            ctx.strokeStyle = 'rgba(231, 76, 60, 0.5)';
-            ctx.beginPath();
-            ctx.moveTo(0, 2); ctx.lineTo(w, 2);
-            ctx.moveTo(0, h - 2); ctx.lineTo(w, h - 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-    }
-};

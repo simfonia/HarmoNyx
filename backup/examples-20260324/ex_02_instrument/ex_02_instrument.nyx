@@ -9,10 +9,26 @@
         <field name="TYPE">SAW</field>
         <next>
           <block type="sb_set_adsr" id=".8VS_Tz-mGl=6r%-1Ek(">
-            <field name="A">0.5</field>
-            <field name="D">0</field>
-            <field name="S">1</field>
-            <field name="R">0.5</field>
+            <value name="A">
+              <shadow type="math_number" id="ej|SGlm4{3]2LTl~#DmR">
+                <field name="NUM">0.5</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="t]7uA9j4gjVZn2|iTjYS">
+                <field name="NUM">0</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="oRMQ9KIi5z{.i,,3^y{g">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id="f-F]K_$)J8#MLRY.m0iK">
+                <field name="NUM">0.5</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>
@@ -50,10 +66,26 @@
         </value>
         <next>
           <block type="sb_set_adsr" id="YcPqthSUy,S*bIZE,d=z">
-            <field name="A">0.1</field>
-            <field name="D">0.1</field>
-            <field name="S">0.7</field>
-            <field name="R">0.2</field>
+            <value name="A">
+              <shadow type="math_number" id="[W+f1=o|2*d4/RzRt$[f">
+                <field name="NUM">0.1</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="PlkPs.|=r*t,F,,?NyRA">
+                <field name="NUM">0.1</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="O4m]_iDdhvRIQ|D:p.Dl">
+                <field name="NUM">0.7</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id="u@[58U$^tV]pk,y3X-_I">
+                <field name="NUM">0.2</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>
@@ -75,10 +107,26 @@
         <field name="AMP3">0.3</field>
         <next>
           <block type="sb_set_adsr" id="j9A,gi0KOz%TCUL*vKhh">
-            <field name="A">0.01</field>
-            <field name="D">0.5</field>
-            <field name="S">0.1</field>
-            <field name="R">0.3</field>
+            <value name="A">
+              <shadow type="math_number" id="ii8O}W~ezZ;G47u)Uh(0">
+                <field name="NUM">0.01</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="%U8zqxiYuW$jhN_)20jp">
+                <field name="NUM">0.5</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="85In(a3JOg)C)vF0Z#JM">
+                <field name="NUM">0.1</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id="Z+2Br9Dc[0mK2%!oM5Q:">
+                <field name="NUM">0.3</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>
@@ -100,10 +148,26 @@
         <field name="AMP3">0.2</field>
         <next>
           <block type="sb_set_adsr" id="q?uE`yVFHd8B$BHJ;(7y">
-            <field name="A">0.2</field>
-            <field name="D">0</field>
-            <field name="S">1</field>
-            <field name="R">0.5</field>
+            <value name="A">
+              <shadow type="math_number" id="`^]p=T2g0TOVtextf*27">
+                <field name="NUM">0.2</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="=7_oEE:j*/dV]Y]D9)oP">
+                <field name="NUM">0</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="R%UfOfoaC`0!p7}2s1W3">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id="82le^^GWh!7+ZtLZ0Pcq">
+                <field name="NUM">0.5</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>
@@ -125,10 +189,26 @@
         <field name="AMP3">0.2</field>
         <next>
           <block type="sb_set_adsr" id="I6hMNmb,/Iq6}Fh(U63p">
-            <field name="A">0.01</field>
-            <field name="D">0.1</field>
-            <field name="S">0.7</field>
-            <field name="R">2</field>
+            <value name="A">
+              <shadow type="math_number" id="7,FYg|Jryf;v5,$[!I%4">
+                <field name="NUM">0.01</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="a~*fRYoeLn)jyHFsGqT4">
+                <field name="NUM">0.1</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="J}XOoHYYFt$Z=uMn:p[W">
+                <field name="NUM">0.7</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id="*4mdZYr^5M6l:uwu}G,A">
+                <field name="NUM">2</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>
@@ -150,10 +230,26 @@
         <field name="AMP3">0.2</field>
         <next>
           <block type="sb_set_adsr" id="/3JH=gBn}ucv=SIwFXTf">
-            <field name="A">0.01</field>
-            <field name="D">0.1</field>
-            <field name="S">0.5</field>
-            <field name="R">1</field>
+            <value name="A">
+              <shadow type="math_number" id="p~48d7U=nI.|zJ(UYB.x">
+                <field name="NUM">0.01</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="OmqAco)M[[?t4,)Up4u|">
+                <field name="NUM">0.1</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="z_CDaCm`,7Z2wTLy%pvv">
+                <field name="NUM">0.5</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id="MY/OZ}`+exsD@LCl+r})">
+                <field name="NUM">1</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>

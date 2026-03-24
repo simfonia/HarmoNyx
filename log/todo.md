@@ -23,3 +23,4 @@
     - **Tab 1: 積木輔助 (Visual Help)**: 點擊積木時顯示動態圖解（如 ADSR 曲線、波形預覽）。
     - **Tab 2: 即時程式碼 (Live Code)**: 顯示當前 Workspace 生成的 Java 代碼，支援語法高亮。
 - [x] **主題適配微調**: 持續微調 Blockly Theme 與背景色的對比，確保在深色模式下所有文字皆清晰。
+- [ ] **ADSR 光點動畫訊號串接**：將 Processing 的 noteOn 事件透過 Tauri 傳回前端，並呼叫 EnvelopeManager.trigger() 以驅動 ADSR 積木上的光點動畫 (參考 WaveCode 架構)。

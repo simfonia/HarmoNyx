@@ -220,26 +220,10 @@ export const WaveCodeToolbox = `
             </value>
         </block>
         <block type="sb_set_adsr">
-            <value name="A">
-                <shadow type="math_number">
-                    <field name="NUM">0.01</field>
-                </shadow>
-            </value>
-            <value name="D">
-                <shadow type="math_number">
-                    <field name="NUM">0.1</field>
-                </shadow>
-            </value>
-            <value name="S">
-                <shadow type="math_number">
-                    <field name="NUM">0.5</field>
-                </shadow>
-            </value>
-            <value name="R">
-                <shadow type="math_number">
-                    <field name="NUM">0.5</field>
-                </shadow>
-            </value>
+            <field name="A">0.05</field>
+            <field name="D">0.2</field>
+            <field name="S">0.5</field>
+            <field name="R">0.5</field>
         </block>
         <block type="sb_update_adsr">
             <value name="A">

@@ -6,6 +6,7 @@ import './style.css';
 import './lang/zh-hant.js';
 
 import { UIUtils } from './modules/ui_utils.js';
+import { FieldADSR, EnvelopeManager } from './modules/visualizer.js';
 import './blocks/structure.js';
 import './blocks/audio_core.js';
 import './blocks/audio_effects.js';

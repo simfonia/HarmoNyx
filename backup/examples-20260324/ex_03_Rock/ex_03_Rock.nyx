@@ -36,10 +36,26 @@
         <field name="TYPE">SAW</field>
         <next>
           <block type="sb_set_adsr" id="q?uE`yVFHd8B$BHJ;(7y">
-            <field name="A">0.02</field>
-            <field name="D">0.1</field>
-            <field name="S">0.3</field>
-            <field name="R">0.4</field>
+            <value name="A">
+              <shadow type="math_number" id="O55]MjmsD?Z2O]N~kr%+">
+                <field name="NUM">0.02</field>
+              </shadow>
+            </value>
+            <value name="D">
+              <shadow type="math_number" id="`.X:I%4YZs?urR-@53i1">
+                <field name="NUM">0.1</field>
+              </shadow>
+            </value>
+            <value name="S">
+              <shadow type="math_number" id="j*,|dPTj,qA_YpJc,4u|">
+                <field name="NUM">0.3</field>
+              </shadow>
+            </value>
+            <value name="R">
+              <shadow type="math_number" id="01wvkzwg2;RwkJzgo%pt">
+                <field name="NUM">0.4</field>
+              </shadow>
+            </value>
           </block>
         </next>
       </block>
