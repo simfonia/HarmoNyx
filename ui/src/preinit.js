@@ -160,6 +160,29 @@ window.SB_Utils.hexToHue = function (hex) {
 /**
  * --- Mutators (Ported from #stage) ---
  */
+window.SB_Utils.FIELD_HELPER = {
+    onchange: function (e) {
+        // 忽略非積木變更、拖曳中、或非本積木的事件
+        if (this.disposed || this.workspace.isDragging() || e.type !== Blockly.Events.BLOCK_CHANGE || e.blockId !== this.id) return;
+        // 僅監聽 EFFECT_TYPE 欄位的變更
+        if (e.name === 'EFFECT_TYPE') {
+            const block = this;
+            const newValue = e.newValue;
+            // 使用 setTimeout 避開當前事件循環，防止 ID 衝突
+            setTimeout(() => {
+                if (!block.disposed && block.updateShape_) {
+                    try {
+                        Blockly.Events.disable(); // 暫停事件紀錄，防止影子積木銷毀時觸發移動事件
+                        block.updateShape_(newValue);
+                    } finally {
+                        Blockly.Events.enable();  // 恢復事件紀錄
+                    }
+                }
+            }, 0);
+        }
+    }
+};
+
 window.SB_Utils.HARMONIC_PARTIALS_MUTATOR = {
     itemCount_: 3,
     mutationToDom: function () { const c = Blockly.utils.xml.createElement('mutation'); c.setAttribute('items', this.itemCount_); return c; },
@@ -257,7 +280,20 @@ window.SB_Utils.SETUP_EFFECT_MUTATOR = {
     domToMutation: function (xml) { this.updateShape_(xml.getAttribute('effect_type') || 'filter', xml); },
     updateShape_: function (type, xml) {
         const params = ['FILTER_TYPE', 'FILTER_FREQ', 'FILTER_Q', 'FILTER_ROLLOFF', 'DELAY_TIME', 'FEEDBACK', 'BITDEPTH', 'THRESHOLD', 'RATIO', 'ATTACK', 'RELEASE', 'MAKEUP', 'WET', 'DISTORTION_AMOUNT', 'DECAY', 'PREDELAY', 'RATE', 'DEPTH', 'MOD_TYPE', 'SWEEP_INPUT', 'SWEEP_DEPTH_INPUT', 'JITTER_INPUT', 'ROOMSIZE', 'DAMPING'];
-        params.forEach(p => { if (this.getInput(p)) this.removeInput(p); });
+        params.forEach(p => { 
+            const input = this.getInput(p);
+            if (input) {
+                // 安全銷毀連接的積木 (包含 Shadow)
+                if (input.connection && input.connection.isConnected()) {
+                    const target = input.connection.targetBlock();
+                    if (target) {
+                        target.unplug();
+                        if (target.isShadow()) target.dispose();
+                    }
+                }
+                this.removeInput(p); 
+            }
+        });
         const addShadow = (name, num) => { const inp = this.getInput(name); if (inp && inp.connection && !xml) { const s = Blockly.utils.xml.textToDom('<shadow type="math_number"><field name="NUM">' + num + '</field></shadow>'); inp.connection.setShadowDom(s); } };
         if (type === 'filter') {
             this.appendDummyInput('FILTER_TYPE').setAlign(Blockly.ALIGN_RIGHT).appendField("類型").appendField(new Blockly.FieldDropdown([["lowpass", "lowpass"], ["highpass", "highpass"], ["bandpass", "bandpass"]]), "FILTER_TYPE_VALUE");

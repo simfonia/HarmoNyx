@@ -303,3 +303,28 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
     filter: brightness(2.0) contrast(1.3) drop-shadow(0 0 24px #FE2F89);
 }
 
+
+/* --- 孤兒積木 (Disabled) 樣式覆寫 --- */
+.blocklyDisabled {
+    opacity: 0.8 !important; /* 保持較高不透明度，讓內容可讀 */
+    fill-opacity: 0.5 !important;
+}
+
+/* 紅色邊框警示效果 */
+.blocklyDisabled > .blocklyPath {
+    stroke: #eee7e7 !important; /* 邊框 */
+    stroke-width: 1px !important;
+    stroke-opacity: 0.5 !important;
+    fill-opacity: 0.1 !important; /* 讓填充稍微透明一點點 */
+}
+
+/* 讓內部文字稍微變暗，但保持可讀 */
+.blocklyDisabled .blocklyText {
+    fill: #ddd !important;
+}
+
+/* 針對孤兒積木的圖示也加上紅色濾鏡 */
+.blocklyDisabled .blocklyIconGroup {
+    filter: drop-shadow(0 0 2px #ff0000);
+}
+

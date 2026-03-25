@@ -652,8 +652,5 @@ export const WaveCodeToolbox = `
         <block type="ui_add_slider"></block>
         <block type="ui_add_toggle"></block>
     </category>
-    <category name="　" colour="#050505" disabled="true"></category>
-    <category name="　" colour="#050505" disabled="true"></category>
-    <category name="　" colour="#050505" disabled="true"></category>
 </xml>
 `;

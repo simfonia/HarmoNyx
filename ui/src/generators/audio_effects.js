@@ -13,98 +13,76 @@ Blockly.Processing.registerGenerator('sb_setup_effect', function(block) {
   const type = block.getFieldValue('EFFECT_TYPE');
   let finalTarget = (name === "Master") ? "masterGainUGen" : '((UGen)instrumentPans.getOrDefault("' + name + '", getInstrumentMixer("' + name + '")))';
   let endVar = (name === "Master") ? "masterEffectEnd" : '(UGen)instrumentEffectEnds.getOrDefault("' + name + '", getInstrumentMixer("' + name + '"))';
-  let code = `{
-`;
+  
+  // 安全讀取數值輔助函式
+  const safeValue = (name, def) => {
+    if (!block.getInput(name)) return def;
+    return Blockly.Processing.valueToCode(block, name, Blockly.Processing.ORDER_ATOMIC) || def;
+  };
+
+  let code = `{\n`;
 
   if (type === 'filter') {
-    const freq = Blockly.Processing.valueToCode(block, 'FILTER_FREQ', Blockly.Processing.ORDER_ATOMIC) || '1000';
-    const q = Blockly.Processing.valueToCode(block, 'FILTER_Q', Blockly.Processing.ORDER_ATOMIC) || '1';
-    code += `  if (instrumentFilters.containsKey("${name}")) { updateFilter("${name}", (float)${freq}, (float)${q}); }
-`;
+    const freq = safeValue('FILTER_FREQ', '1000');
+    const q = safeValue('FILTER_Q', '1');
+    code += `  if (instrumentFilters.containsKey("${name}")) { updateFilter("${name}", (float)${freq}, (float)${q}); }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); UGen f = new MoogFilter((float)${freq}, constrain((float)${q}, 0.0f, 0.9f)); instrumentFilters.put("${name}", f); prev.patch(f).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = f; }
-` : `instrumentEffectEnds.put("${name}", f); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = f; }\n` : `instrumentEffectEnds.put("${name}", f); }\n`;
   } else if (type === 'autofilter') {
-    const rate = Blockly.Processing.valueToCode(block, 'RATE', Blockly.Processing.ORDER_ATOMIC) || '0.5';
-    const depth = Blockly.Processing.valueToCode(block, 'DEPTH', Blockly.Processing.ORDER_ATOMIC) || '20';
-    const q = Blockly.Processing.valueToCode(block, 'FILTER_Q', Blockly.Processing.ORDER_ATOMIC) || '0.4';
-    code += `  if (instrumentAutoFilters.containsKey("${name}")) { ddf.minim.ugens.Oscil lfo = (ddf.minim.ugens.Oscil)instrumentAutoFilterLFOs.get("${name}"); if (lfo != null) { lfo.setFrequency((float)${rate}); lfo.setAmplitude(1000.0f * (float)${depth}/100.0f); } ddf.minim.ugens.MoogFilter f = (ddf.minim.ugens.MoogFilter)instrumentAutoFilters.get("${name}"); if (f != null) { f.resonance.setLastValue(constrain((float)${q}, 0.0f, 0.9f)); } }
-`;
+    const rate = safeValue('RATE', '0.5');
+    const depth = safeValue('DEPTH', '20');
+    const q = safeValue('FILTER_Q', '0.4');
+    code += `  if (instrumentAutoFilters.containsKey("${name}")) { ddf.minim.ugens.Oscil lfo = (ddf.minim.ugens.Oscil)instrumentAutoFilterLFOs.get("${name}"); if (lfo != null) { lfo.setFrequency((float)${rate}); lfo.setAmplitude(1000.0f * (float)${depth}/100.0f); } ddf.minim.ugens.MoogFilter f = (ddf.minim.ugens.MoogFilter)instrumentAutoFilters.get("${name}"); if (f != null) { f.resonance.setLastValue(constrain((float)${q}, 0.0f, 0.9f)); } }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); ddf.minim.ugens.MoogFilter f = new ddf.minim.ugens.MoogFilter(1000, (float)${q}); ddf.minim.ugens.Oscil lfo = new ddf.minim.ugens.Oscil((float)${rate}, 1000.0f * (float)${depth}/100.0f, Waves.SINE); ddf.minim.ugens.Summer s = new SBSummer(); new ddf.minim.ugens.Constant(1000).patch(s); lfo.patch(s).patch(f.frequency); instrumentAutoFilters.put("${name}", f); instrumentAutoFilterLFOs.put("${name}", lfo); prev.patch(f).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = f; }
-` : `instrumentEffectEnds.put("${name}", f); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = f; }\n` : `instrumentEffectEnds.put("${name}", f); }\n`;
   } else if (type === 'pitchmod') {
     const mType = block.getFieldValue('TYPE') || 'NOISE';
-    const rate = Blockly.Processing.valueToCode(block, 'RATE', Blockly.Processing.ORDER_ATOMIC) || '5';
-    const depth = Blockly.Processing.valueToCode(block, 'DEPTH', Blockly.Processing.ORDER_ATOMIC) || '10';
-    code += `  if (instrumentPitchMods.containsKey("${name}")) { UGen lfo = (UGen)instrumentPitchModLFOs.get("${name}"); if (lfo instanceof ddf.minim.ugens.Oscil) { ((ddf.minim.ugens.Oscil)lfo).setFrequency((float)${rate}); ((ddf.minim.ugens.Oscil)lfo).setAmplitude((float)${depth}/1200.0f); } else if (lfo instanceof ddf.minim.ugens.Noise) { ((ddf.minim.ugens.Noise)lfo).amplitude.setLastValue((float)${depth}/240.0f); } }
-`;
+    const rate = safeValue('RATE', '5');
+    const depth = safeValue('DEPTH', '10');
+    code += `  if (instrumentPitchMods.containsKey("${name}")) { UGen lfo = (UGen)instrumentPitchModLFOs.get("${name}"); if (lfo instanceof ddf.minim.ugens.Oscil) { ((ddf.minim.ugens.Oscil)lfo).setFrequency((float)${rate}); ((ddf.minim.ugens.Oscil)lfo).setAmplitude((float)${depth}/1200.0f); } else if (lfo instanceof ddf.minim.ugens.Noise) { ((ddf.minim.ugens.Noise)lfo).amplitude.setLastValue((float)${depth}/240.0f); } }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); ddf.minim.ugens.TickRate tr = new ddf.minim.ugens.TickRate(1.0f); UGen lfo; if ("${mType}".equals("NOISE")) lfo = new ddf.minim.ugens.Noise((float)${depth}/240.0f, ddf.minim.ugens.Noise.Tint.WHITE); else lfo = new ddf.minim.ugens.Oscil((float)${rate}, (float)${depth}/1200.0f, Waves.SINE); ddf.minim.ugens.Summer s = new SBSummer(); new ddf.minim.ugens.Constant(1.0f).patch(s); lfo.patch(s).patch(tr.value); instrumentPitchMods.put("${name}", tr); instrumentPitchModLFOs.put("${name}", lfo); prev.patch(tr).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = tr; }
-` : `instrumentEffectEnds.put("${name}", tr); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = tr; }\n` : `instrumentEffectEnds.put("${name}", tr); }\n`;
   } else if (type === 'delay') {
-    const time = Blockly.Processing.valueToCode(block, 'DELAY_TIME', Blockly.Processing.ORDER_ATOMIC) || '0.5';
-    const feedback = Blockly.Processing.valueToCode(block, 'FEEDBACK', Blockly.Processing.ORDER_ATOMIC) || '0.5';
-    code += `  if (instrumentDelays.containsKey("${name}")) { try { Object dObj = instrumentDelays.get("${name}"); java.lang.reflect.Field f = dObj.getClass().getField("delTime"); Object input = f.get(dObj); input.getClass().getMethod("setLastValue", float.class).invoke(input, (float)${time}); } catch (Exception e) {} }
-`;
+    const time = safeValue('DELAY_TIME', '0.5');
+    const feedback = safeValue('FEEDBACK', '0.5');
+    code += `  if (instrumentDelays.containsKey("${name}")) { try { Object dObj = instrumentDelays.get("${name}"); java.lang.reflect.Field f = dObj.getClass().getField("delTime"); Object input = f.get(dObj); input.getClass().getMethod("setLastValue", float.class).invoke(input, (float)${time}); } catch (Exception e) {} }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); Delay d = new Delay(${time}, ${feedback}, true, true); instrumentDelays.put("${name}", d); prev.patch(d).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = d; }
-` : `instrumentEffectEnds.put("${name}", d); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = d; }\n` : `instrumentEffectEnds.put("${name}", d); }\n`;
   } else if (type === 'bitcrush') {
-    const bits = Blockly.Processing.valueToCode(block, 'BITDEPTH', Blockly.Processing.ORDER_ATOMIC) || '8';
-    code += `  if (instrumentBitCrushers.containsKey("${name}")) { try { Object bObj = instrumentBitCrushers.get("${name}"); java.lang.reflect.Field f = bObj.getClass().getField("bitRes"); Object input = f.get(bObj); input.getClass().getMethod("setLastValue", float.class).invoke(input, (float)${bits}); } catch (Exception e) {} }
-`;
+    const bits = safeValue('BITDEPTH', '8');
+    code += `  if (instrumentBitCrushers.containsKey("${name}")) { try { Object bObj = instrumentBitCrushers.get("${name}"); java.lang.reflect.Field f = bObj.getClass().getField("bitRes"); Object input = f.get(bObj); input.getClass().getMethod("setLastValue", float.class).invoke(input, (float)${bits}); } catch (Exception e) {} }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); BitCrush bc = new BitCrush((float)${bits}, out.sampleRate()); instrumentBitCrushers.put("${name}", bc); prev.patch(bc).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = bc; }
-` : `instrumentEffectEnds.put("${name}", bc); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = bc; }\n` : `instrumentEffectEnds.put("${name}", bc); }\n`;
   } else if (type === 'waveshaper') {
-    const amount = Blockly.Processing.valueToCode(block, 'DISTORTION_AMOUNT', Blockly.Processing.ORDER_ATOMIC) || '2';
-    code += `  if (instrumentWaveshapers.containsKey("${name}")) { ((SBWaveshaper)instrumentWaveshapers.get("${name}")).setAmount((float)${amount}); }
-`;
+    const amount = safeValue('DISTORTION_AMOUNT', '2');
+    code += `  if (instrumentWaveshapers.containsKey("${name}")) { ((SBWaveshaper)instrumentWaveshapers.get("${name}")).setAmount((float)${amount}); }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); SBWaveshaper ws = new SBWaveshaper(); ws.setAmount((float)${amount}); instrumentWaveshapers.put("${name}", ws); prev.patch(ws).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = ws; }
-` : `instrumentEffectEnds.put("${name}", ws); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = ws; }\n` : `instrumentEffectEnds.put("${name}", ws); }\n`;
   } else if (type === 'reverb') {
-    const rs = Blockly.Processing.valueToCode(block, 'ROOMSIZE', Blockly.Processing.ORDER_ATOMIC) || '0.5';
-    const damp = Blockly.Processing.valueToCode(block, 'DAMPING', Blockly.Processing.ORDER_ATOMIC) || '0.5';
-    const wet = Blockly.Processing.valueToCode(block, 'WET', Blockly.Processing.ORDER_ATOMIC) || '0.3';
-    code += `  if (instrumentReverbs.containsKey("${name}")) { ((SBReverb)instrumentReverbs.get("${name}")).setParams((float)${rs}, (float)${damp}, (float)${wet}); }
-`;
+    const rs = safeValue('ROOMSIZE', '0.5');
+    const damp = safeValue('DAMPING', '0.5');
+    const wet = safeValue('WET', '0.3');
+    code += `  if (instrumentReverbs.containsKey("${name}")) { ((SBReverb)instrumentReverbs.get("${name}")).setParams((float)${rs}, (float)${damp}, (float)${wet}); }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); SBReverb rv = new SBReverb(); rv.setParams((float)${rs}, (float)${damp}, (float)${wet}); instrumentReverbs.put("${name}", rv); prev.patch(rv).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = rv; }
-` : `instrumentEffectEnds.put("${name}", rv); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = rv; }\n` : `instrumentEffectEnds.put("${name}", rv); }\n`;
   } else if (type === 'compressor') {
-    const threshold = Blockly.Processing.valueToCode(block, 'THRESHOLD', Blockly.Processing.ORDER_ATOMIC) || '-20';
-    const ratio = Blockly.Processing.valueToCode(block, 'RATIO', Blockly.Processing.ORDER_ATOMIC) || '4';
-    const attack = Blockly.Processing.valueToCode(block, 'ATTACK', Blockly.Processing.ORDER_ATOMIC) || '0.01';
-    const release = Blockly.Processing.valueToCode(block, 'RELEASE', Blockly.Processing.ORDER_ATOMIC) || '0.25';
-    const makeup = Blockly.Processing.valueToCode(block, 'MAKEUP', Blockly.Processing.ORDER_ATOMIC) || '0';
-    code += `  if (instrumentCompressors.containsKey("${name}")) { ((SBCompressor)instrumentCompressors.get("${name}")).setParams((float)${threshold}, (float)${ratio}, (float)${attack}, (float)${release}, (float)${makeup}); }
-`;
+    const threshold = safeValue('THRESHOLD', '-20');
+    const ratio = safeValue('RATIO', '4');
+    const attack = safeValue('ATTACK', '0.01');
+    const release = safeValue('RELEASE', '0.25');
+    const makeup = safeValue('MAKEUP', '0');
+    code += `  if (instrumentCompressors.containsKey("${name}")) { ((SBCompressor)instrumentCompressors.get("${name}")).setParams((float)${threshold}, (float)${ratio}, (float)${attack}, (float)${release}, (float)${makeup}); }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); SBCompressor c = new SBCompressor(); c.setParams((float)${threshold}, (float)${ratio}, (float)${attack}, (float)${release}, (float)${makeup}); instrumentCompressors.put("${name}", c); prev.patch(c).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = c; }
-` : `instrumentEffectEnds.put("${name}", c); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = c; }\n` : `instrumentEffectEnds.put("${name}", c); }\n`;
   } else if (type === 'limiter') {
-    const threshold = Blockly.Processing.valueToCode(block, 'THRESHOLD', Blockly.Processing.ORDER_ATOMIC) || '-3';
-    const attack = Blockly.Processing.valueToCode(block, 'ATTACK', Blockly.Processing.ORDER_ATOMIC) || '0.001';
-    const release = Blockly.Processing.valueToCode(block, 'RELEASE', Blockly.Processing.ORDER_ATOMIC) || '0.1';
-    code += `  if (instrumentLimiters.containsKey("${name}")) { ((SBCompressor)instrumentLimiters.get("${name}")).setParams((float)${threshold}, 20.0f, (float)${attack}, (float)${release}, 0.0f); }
-`;
+    const threshold = safeValue('THRESHOLD', '-3');
+    const attack = safeValue('ATTACK', '0.001');
+    const release = safeValue('RELEASE', '0.1');
+    code += `  if (instrumentLimiters.containsKey("${name}")) { ((SBCompressor)instrumentLimiters.get("${name}")).setParams((float)${threshold}, 20.0f, (float)${attack}, (float)${release}, 0.0f); }\n`;
     code += `  else { UGen prev = ${endVar}; prev.unpatch(${finalTarget}); SBCompressor c = new SBCompressor(); c.setParams((float)${threshold}, 20.0f, (float)${attack}, (float)${release}, 0.0f); instrumentLimiters.put("${name}", c); prev.patch(c).patch(${finalTarget}); `;
-    code += (name === "Master") ? `masterEffectEnd = c; }
-` : `instrumentEffectEnds.put("${name}", c); }
-`;
+    code += (name === "Master") ? `masterEffectEnd = c; }\n` : `instrumentEffectEnds.put("${name}", c); }\n`;
   }
-  code += `}
-`; return code;
+  code += `}\n`; return code;
 });
 
 Blockly.Processing.registerGenerator('sb_set_instrument_volume', function(block) {

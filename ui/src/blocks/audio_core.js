@@ -258,7 +258,7 @@ Blockly.Blocks['sb_set_adsr'] = {
 Blockly.Extensions.register('audio_adsr_visual_sync', function() {
   const block = this;
   const updateVisual = () => {
-    if (block.disposed) return;
+    if (block.disposed || !block.workspace) return;
     const a = parseFloat(block.getFieldValue('A')) || 0;
     const d = parseFloat(block.getFieldValue('D')) || 0;
     const s = parseFloat(block.getFieldValue('S')) || 0;
@@ -269,10 +269,12 @@ Blockly.Extensions.register('audio_adsr_visual_sync', function() {
     }
   };
   
-  // 初始同步
-  setTimeout(() => {
-    if (!block.disposed) updateVisual();
-  }, 100);
+  // 僅在非工具箱環境下進行初始同步
+  if (!block.isInFlyout) {
+    setTimeout(() => {
+      if (!block.disposed) updateVisual();
+    }, 100);
+  }
 
   block.setOnChange(function(e) {
     if (e.type === Blockly.Events.BLOCK_CHANGE && e.blockId === block.id) {

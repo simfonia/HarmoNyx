@@ -83,3 +83,18 @@ Minimap 預設不會監聽單純的點擊事件。我們在 `ui_utils.js` 的 `i
 - **摺疊式選單 (Accordion)**:
     - 為了同時支援垂直捲動與子選單顯示，棄用了側邊彈出 (Nested Hover) 樣式，改為內嵌摺疊。
     - CSS 結構：子選單 `.submenu` 與父項目 `.has-submenu` 為兄弟元素 (Sibling)，透過 `+` 選擇器控制顯示。
+
+## Blockly Mutator 競態條件與事件抑制 (sb_setup_effect 案例)
+在實作具備動態插槽 (Dynamic Inputs) 的變連積木 (Mutator) 時，若同時使用 Validator 與 onchange 監聽器觸發 updateShape_，會導致重複調用，進而引發「找不到積木 ID (non-existent block)」錯誤。
+
+### 關鍵陷阱 (The Pitfall)
+1.  **影子積木銷毀**: emoveInput 會自動銷毀連接在上面的 Shadow Block。這會觸發 Blockly 的 Delete 事件。
+2.  **事件衝突**: 如果此時使用者正在進行拖曳或其他操作，Blockly 的事件系統可能會嘗試引用那個「剛被標記為銷毀」的 Shadow Block ID。
+3.  **非同步風險**: 若產生器 (Generator) 在插槽重建完成前執行，會讀取到空插槽，導致 ReferenceError。
+
+### 解決方案 (The Fix)
+1.  **Validator 唯一觸發**: 棄用 FIELD_HELPER.onchange，僅使用 Validator (或反之)，避免重複觸發。
+2.  **安全銷毀**: 在 updateShape_ 中移除 Input 前，必須先手動斷開 (unplug) 並銷毀 (dispose) 連接的積木，確保 ID 從索引中徹底移除。
+3.  **非同步變連 (Async Mutation)**: 使用 setTimeout(..., 0) 將結構變更推遲到事件循環之後。
+4.  **防禦性產生器**: 產生器必須使用 lock.getInput() 檢查插槽是否存在，若不存在則回傳預設值，以容忍非同步更新的時間差。
+

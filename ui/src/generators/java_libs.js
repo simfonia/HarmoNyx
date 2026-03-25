@@ -260,6 +260,11 @@ window.SB_JavaLibs.AUDIO_HELPERS = `
         if (cp5.getController("adsrR") != null) cp5.getController("adsrR").setValue(adsrR);
       }
       adsrState = 0; logToScreen("Instrument Switched: " + currentInstrument, 1); lastInstrument = currentInstrument;
+    } else {
+      // 即時同步滑桿數值回 Map，確保演奏時能讀取到最新設定
+      if (!currentInstrument.equals("")) {
+        instrumentADSR.put(currentInstrument, new float[]{adsrA, adsrD, adsrS, adsrR});
+      }
     }
   }
 
@@ -392,7 +397,7 @@ window.SB_JavaLibs.GENERAL_HELPERS = `
       int transP = p + pitchTranspose;
       if (!pcKeysHeld.containsKey(p)) { 
         playNoteInternal(currentInstrument, transP, 100); 
-        pcKeysHeld.put(p, currentInstrument); 
+        pcKeysHeld.put(p, currentInstrument + ":" + transP); 
         logToScreen("Keyboard ON: MIDI " + transP, 0); 
       } 
     }
@@ -406,10 +411,13 @@ window.SB_JavaLibs.GENERAL_HELPERS = `
     else if (k == 'i') p = 72; else if (k == '9') p = 73; else if (k == 'o') p = 74; else if (k == '0') p = 75; else if (k == 'p') p = 76;
     if (p != -1) { 
       if (pcKeysHeld.containsKey(p)) { 
-        String inst = pcKeysHeld.get(p); 
-        stopNoteInternal(inst, p + pitchTranspose); 
+        String val = pcKeysHeld.get(p);
+        String[] parts = val.split(":");
+        String inst = parts[0];
+        int originalMidi = Integer.parseInt(parts[1]);
+        stopNoteInternal(inst, originalMidi); 
         pcKeysHeld.remove(p); 
-        logToScreen("Keyboard OFF: MIDI " + (p + pitchTranspose), 0); 
+        logToScreen("Keyboard OFF: MIDI " + originalMidi, 0); 
       } 
     }
     {{KEY_RELEASED_EVENT_PLACEHOLDER}}

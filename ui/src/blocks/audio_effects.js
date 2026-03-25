@@ -33,12 +33,16 @@ Blockly.Blocks['sb_setup_effect'] = {
       "previousStatement": null,
       "nextStatement": null,
       "colour": Blockly.Msg['EFFECTS_HUE'] || "#8E44AD",
-      "tooltip": (Blockly.Msg['SB_SETUP_EFFECT_TOOLTIP'] || "") + Blockly.Msg['HELP_HINT'],
+      "tooltip": (Blockly.Msg['SB_SETUP_EFFECT_TOOLTIP'] || "") + (Blockly.Msg['BKY_HELP_HINT'] || ""),
       "helpUrl": "effects",
       "mutator": "setup_effect_mutator"
     });
     this.setInputsInline(false);
-    this.updateShape_('filter');
+    
+    // 初始化外觀 (由 FIELD_HELPER 處理後續連動)
+    if (this.updateShape_) {
+      this.updateShape_('filter');
+    }
   }
 };
 Object.assign(Blockly.Blocks['sb_setup_effect'], window.SB_Utils.FIELD_HELPER);
@@ -71,7 +75,6 @@ Blockly.Blocks['sb_set_effect_param'] = {
       var options = [["ADSR", "adsr"], [panningLabel, "panning"]];
       var target = instance.getFieldValue('TARGET');
       
-      // 確保基礎選項始終存在
       if (!target || target === Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']) {
         return options;
       }
@@ -98,7 +101,7 @@ Blockly.Blocks['sb_set_effect_param'] = {
     this.appendDummyInput().appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_TITLE'] || "更新 %1 的 %2").split('%1')[0])
       .appendField(window.SB_Utils.createInstrumentField(Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']), "TARGET")
       .appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_TITLE'] || "更新 %1 的 %2").split('%2')[0].split('%1')[1] || "類型")
-      .appendField(new Blockly.FieldDropdown(getEffectOptions, function (val) { this.sourceBlock_.updateShape_(val); }), "EFFECT_TYPE");
+      .appendField(new Blockly.FieldDropdown(getEffectOptions, function (val) { this.getSourceBlock().updateShape_(val); }), "EFFECT_TYPE");
 
     this.setPreviousStatement(true, null); this.setNextStatement(true, null);
     this.setColour(Blockly.Msg['EFFECTS_HUE'] || "#8E44AD");

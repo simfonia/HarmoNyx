@@ -237,6 +237,7 @@ Blockly.Blocks['sb_play_melody'] = {
     this.setPreviousStatement(true, null); this.setNextStatement(true, null);
     this.setColour(Blockly.Msg['PERFORMANCE_HUE'] || "#E67E22");
     this.setTooltip(Blockly.Msg['AUDIO_PLAY_MELODY_TOOLTIP']);
+    this.setHelpUrl('melody');
   }
 };
 

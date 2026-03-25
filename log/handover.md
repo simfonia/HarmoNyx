@@ -32,3 +32,20 @@
   3. 執行 `cargo tauri build`。
 - **資源整合**: 在 `tauri.conf.json` 中配置了 `resources` 打包路徑，確保 `samples/` 與 `examples/` 能正確發布。
 - **建置狀態**: 目前背景執行 `cargo tauri build` (PID: 14464)。
+
+## 2026-03-25 (穩定性修復與 UI 強化)
+- **核心穩定性 (Mutator & Generator)**:
+    - **問題 (sb_setup_effect)**: 切換效果類型時出現 Can't move non-existent block 與 ReferenceError。
+    - **解法**:
+        1. 解決競態條件：改為單一事件源 (onchange + setTimeout)，並在銷毀 Input 前手動斷開/銷毀影子積木。
+        2. 防禦性產生器：實作 safeValue 輔助函式，容許非同步更新期間插槽暫時缺失的情況。
+- **舞台即時同步 (Visual Stage)**:
+    - **問題**: 「超級表演舞台」的 ADSR 滑桿無法改變當前樂器的聲音。
+    - **解法**: 在 java_libs.js 的 updateInstrumentUISync 中加入即時寫入邏輯，確保滑桿變動能立即更新到 instrumentADSR Map。
+- **演奏邏輯 (Transpose)**:
+    - **問題**: 按住琴鍵同時改變移調 (Transpose) 會導致 Note Off 發送錯誤的 MIDI 鍵號，產生卡音。
+    - **解法**: 在 pcKeysHeld 中改為記錄完整的 Instrument:MidiNote 字串，Note Off 時直接使用原始鍵號，不再受當前移調值影響。
+- **UI/UX 優化**:
+    - **孤兒積木樣式**: 將未連接積木的樣式由單純變淡改為 **紅色邊框 (stroke)** 加 **高透明度 (0.9)**，大幅提升辨識度。
+    - **翻譯補全**: 補上了 sb_create_harmonic_synth 與 sb_create_additive_synth 變連選單中的缺漏字串。
+

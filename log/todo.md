@@ -24,3 +24,8 @@
     - **Tab 2: 即時程式碼 (Live Code)**: 顯示當前 Workspace 生成的 Java 代碼，支援語法高亮。
 - [x] **主題適配微調**: 持續微調 Blockly Theme 與背景色的對比，確保在深色模式下所有文字皆清晰。
 - [ ] **ADSR 光點動畫訊號串接**：將 Processing 的 noteOn 事件透過 Tauri 傳回前端，並呼叫 EnvelopeManager.trigger() 以驅動 ADSR 積木上的光點動畫 (參考 WaveCode 架構)。
+- [x] **Mutator 穩定性**: 修復了 sb_setup_effect 切換時的崩潰問題。
+- [x] **舞台參數同步**: 修復了 isual_stage_setup ADSR 滑桿失效的問題。
+- [x] **移調卡音修復**: 解決了 Transpose 操作導致的卡音問題。
+- [x] **孤兒積木樣式**: 實作了紅色邊框警示效果。
+
