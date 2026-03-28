@@ -39,12 +39,13 @@ Blockly.Blocks['sb_setup_effect'] = {
     });
     this.setInputsInline(false);
     
-    // 初始化外觀 (由 FIELD_HELPER 處理後續連動)
+    // 初始化外觀
     if (this.updateShape_) {
-      this.updateShape_('filter');
+        this.updateShape_('filter');
     }
   }
 };
+// 註冊輔助器以監聽切換
 Object.assign(Blockly.Blocks['sb_setup_effect'], window.SB_Utils.FIELD_HELPER);
 
 Blockly.Blocks['sb_set_instrument_volume'] = {
@@ -60,7 +61,7 @@ Blockly.Blocks['sb_set_instrument_volume'] = {
 Blockly.Blocks['sb_set_panning'] = {
   init: function () {
     this.appendDummyInput().appendField(Blockly.Msg['SB_SET_PANNING_MESSAGE']).appendField(window.SB_Utils.createInstrumentField(Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']), "NAME");
-    this.appendValueInput("VALUE").setCheck("Number").appendField(Blockly.Msg['SB_SET_PANNING_VAL']);
+    this.appendValueInput("VALUE").setCheck("Number").appendField(Blockly.Msg['SB_SET_PANNING_VAL'] || "相位");
     this.setPreviousStatement(true, null); this.setNextStatement(true, null);
     this.setInputsInline(true); this.setColour(Blockly.Msg['INSTRUMENT_CONTROL_HUE'] || "#D22F73");
     this.setTooltip(Blockly.Msg['SB_SET_PANNING_TOOLTIP']);
@@ -74,14 +75,9 @@ Blockly.Blocks['sb_set_effect_param'] = {
       var panningLabel = Blockly.Msg['SB_SET_PANNING_MESSAGE'] || "Panning";
       var options = [["ADSR", "adsr"], [panningLabel, "panning"]];
       var target = instance.getFieldValue('TARGET');
-      
-      if (!target || target === Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']) {
-        return options;
-      }
-
+      if (!target || target === Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']) return options;
       var workspace = instance.workspace;
       if (!workspace) return options;
-
       var blocks = workspace.getAllBlocks(false);
       var container = blocks.find(b => b.type === 'sb_instrument_container' && b.getFieldValue('NAME') === target);
       if (container) {
@@ -101,7 +97,12 @@ Blockly.Blocks['sb_set_effect_param'] = {
     this.appendDummyInput().appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_TITLE'] || "更新 %1 的 %2").split('%1')[0])
       .appendField(window.SB_Utils.createInstrumentField(Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT']), "TARGET")
       .appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_TITLE'] || "更新 %1 的 %2").split('%2')[0].split('%1')[1] || "類型")
-      .appendField(new Blockly.FieldDropdown(getEffectOptions, function (val) { this.getSourceBlock().updateShape_(val); }), "EFFECT_TYPE");
+      .appendField(new Blockly.FieldDropdown(getEffectOptions, function (val) { 
+          if (!instance.disposed && instance.updateShape_) {
+              instance.updateShape_(val);
+          }
+          return val; 
+      }), "EFFECT_TYPE");
 
     this.setPreviousStatement(true, null); this.setNextStatement(true, null);
     this.setColour(Blockly.Msg['EFFECTS_HUE'] || "#8E44AD");
@@ -110,53 +111,73 @@ Blockly.Blocks['sb_set_effect_param'] = {
   },
   mutationToDom: function () {
     var container = Blockly.utils.xml.createElement('mutation');
-    container.setAttribute('effect_type', this.getFieldValue('EFFECT_TYPE'));
+    container.setAttribute('effect_type', this.getFieldValue('EFFECT_TYPE') || 'adsr');
     return container;
   },
   domToMutation: function (xmlElement) {
-    this.updateShape_(xmlElement.getAttribute('effect_type'));
+    this.updateShape_(xmlElement.getAttribute('effect_type') || 'adsr', true);
   },
-  updateShape_: function (type) {
-    if (this.getInput('PARAMS')) this.removeInput('PARAMS');
-    if (this.getInput('VALUE')) this.removeInput('VALUE');
-    var input = this.appendDummyInput('PARAMS');
-    if (type === 'filter') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_FILTER_FREQ_FIELD'], "frequency"], [Blockly.Msg['SB_EFFECT_FILTER_Q_FIELD'], "resonance"]]), "PARAM_NAME");
-    } else if (type === 'adsr') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([["Attack (A)", "adsrA"], ["Decay (D)", "adsrD"], ["Sustain (S)", "adsrS"], ["Release (R)", "adsrR"]]), "PARAM_NAME");
-    } else if (type === 'reverb') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_ROOMSIZE_FIELD'], "roomSize"], [Blockly.Msg['SB_EFFECT_DAMPING_FIELD'], "damping"], [Blockly.Msg['SB_EFFECT_WET_FIELD'], "wet"]]), "PARAM_NAME");
-    } else if (type === 'delay') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_DELAY_TIME_FIELD'], "delTime"], [Blockly.Msg['SB_EFFECT_FEEDBACK_FIELD'], "delAmp"]]), "PARAM_NAME");
-    } else if (type === 'bitcrush') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_BITDEPTH_FIELD'], "bitRes"]]), "PARAM_NAME");
-    } else if (type === 'waveshaper') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_DISTORTION_AMOUNT_FIELD'], "amount"]]), "PARAM_NAME");
-    } else if (type === 'compressor') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_THRESHOLD_FIELD'], "threshold"], [Blockly.Msg['SB_EFFECT_RATIO_FIELD'], "ratio"], [Blockly.Msg['SB_EFFECT_ATTACK_FIELD'], "attack"], [Blockly.Msg['SB_EFFECT_RELEASE_FIELD'], "release"], [Blockly.Msg['SB_EFFECT_MAKEUP_FIELD'], "makeup"]]), "PARAM_NAME");
-    } else if (type === 'limiter') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_THRESHOLD_FIELD'], "threshold"], [Blockly.Msg['SB_EFFECT_ATTACK_FIELD'], "attack"], [Blockly.Msg['SB_EFFECT_RELEASE_FIELD'], "release"]]), "PARAM_NAME");
-    } else if (type === 'flanger') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_DELAY_TIME_FIELD'], "delay"], [Blockly.Msg['SB_EFFECT_RATE_FIELD'], "rate"], [Blockly.Msg['SB_EFFECT_DEPTH_FIELD'], "depth"], [Blockly.Msg['SB_EFFECT_FEEDBACK_FIELD'], "feedback"]]), "PARAM_NAME");
-    } else if (type === 'autofilter') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_RATE_FIELD'], "rate"], [Blockly.Msg['SB_EFFECT_DEPTH_FIELD'], "depth"], [Blockly.Msg['SB_EFFECT_FILTER_Q_FIELD'], "resonance"]]), "PARAM_NAME");
-    } else if (type === 'pitchmod') {
-      input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
-        .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_RATE_FIELD'], "rate"], [Blockly.Msg['SB_EFFECT_DEPTH_FIELD'], "depth"]]), "PARAM_NAME");
-    } else if (type === 'panning') {
-      input.appendField(Blockly.Msg['SB_SET_EFFECT_PARAM_PAN_LABEL'] || "相位 (Panning)");
+  updateShape_: function (type, isLoading) {
+    if (this.disposed) return;
+    if (this.workspace && this.workspace.isClearing) return;
+
+    const group = Blockly.Events.getGroup();
+    if (!group) Blockly.Events.setGroup(true);
+
+    try {
+        if (this.getInput('PARAMS')) this.removeInput('PARAMS');
+        if (this.getInput('VALUE')) this.removeInput('VALUE');
+
+        var input = this.appendDummyInput('PARAMS');
+        if (type === 'filter') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_FILTER_FREQ_FIELD'] || "頻率", "frequency"], [Blockly.Msg['SB_EFFECT_FILTER_Q_FIELD'] || "共振 (Q)", "resonance"]]), "PARAM_NAME");
+        } else if (type === 'adsr') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([["Attack (A)", "adsrA"], ["Decay (D)", "adsrD"], ["Sustain (S)", "adsrS"], ["Release (R)", "adsrR"]]), "PARAM_NAME");
+        } else if (type === 'reverb') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_ROOMSIZE_FIELD'] || "空間大小", "roomSize"], [Blockly.Msg['SB_EFFECT_DAMPING_FIELD'] || "高頻吸收", "damping"], [Blockly.Msg['SB_EFFECT_WET_FIELD'] || "濕度 (Wet)", "wet"]]), "PARAM_NAME");
+        } else if (type === 'delay') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_DELAY_TIME_FIELD'] || "延遲時間", "delTime"], [Blockly.Msg['SB_EFFECT_FEEDBACK_FIELD'] || "回饋 (Feedback)", "delAmp"]]), "PARAM_NAME");
+        } else if (type === 'bitcrush') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_BITDEPTH_FIELD'] || "位元深度", "bitRes"]]), "PARAM_NAME");
+        } else if (type === 'waveshaper') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_DISTORTION_AMOUNT_FIELD'] || "失真量", "amount"]]), "PARAM_NAME");
+        } else if (type === 'compressor') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_THRESHOLD_FIELD'] || "門檻", "threshold"], [Blockly.Msg['SB_EFFECT_RATIO_FIELD'] || "比率", "ratio"], [Blockly.Msg['SB_EFFECT_ATTACK_FIELD'] || "啟動時間", "attack"], [Blockly.Msg['SB_EFFECT_RELEASE_FIELD'] || "釋放時間", "release"], [Blockly.Msg['SB_EFFECT_MAKEUP_FIELD'] || "增益補償", "makeup"]]), "PARAM_NAME");
+        } else if (type === 'limiter') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_THRESHOLD_FIELD'] || "限制門檻", "threshold"], [Blockly.Msg['SB_EFFECT_ATTACK_FIELD'] || "啟動時間", "attack"], [Blockly.Msg['SB_EFFECT_RELEASE_FIELD'] || "釋放時間", "release"]]), "PARAM_NAME");
+        } else if (type === 'flanger') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_DELAY_TIME_FIELD'] || "延遲", "delay"], [Blockly.Msg['SB_EFFECT_RATE_FIELD'] || "速率", "rate"], [Blockly.Msg['SB_EFFECT_DEPTH_FIELD'] || "深度", "depth"], [Blockly.Msg['SB_EFFECT_FEEDBACK_FIELD'] || "回饋", "feedback"]]), "PARAM_NAME");
+        } else if (type === 'autofilter') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_RATE_FIELD'] || "速率", "rate"], [Blockly.Msg['SB_EFFECT_DEPTH_FIELD'] || "深度", "depth"], [Blockly.Msg['SB_EFFECT_FILTER_Q_FIELD'] || "共振 (Q)", "resonance"]]), "PARAM_NAME");
+        } else if (type === 'pitchmod') {
+          input.appendField((Blockly.Msg['SB_SET_EFFECT_PARAM_PARAM'] || "參數 %1").split('%1')[0])
+            .appendField(new Blockly.FieldDropdown([[Blockly.Msg['SB_EFFECT_RATE_FIELD'] || "速率", "rate"], [Blockly.Msg['SB_EFFECT_DEPTH_FIELD'] || "深度", "depth"]]), "PARAM_NAME");
+        } else if (type === 'panning') {
+          input.appendField(Blockly.Msg['SB_SET_EFFECT_PARAM_PAN_LABEL'] || "相位 (Panning)");
+        }
+        
+        const valueInput = this.appendValueInput("VALUE").setCheck("Number").appendField(Blockly.Msg['SB_SET_EFFECT_PARAM_VALUE'] || "數值");
+        
+        if (!isLoading) {
+            try {
+                const s = Blockly.utils.xml.textToDom('<shadow type="math_number"><field name="NUM">0</field></shadow>'); 
+                valueInput.connection.setShadowDom(s); 
+            } catch(e) {}
+        }
+        if (this.rendered && this.render) this.render();
+    } finally {
+        if (!group) Blockly.Events.setGroup(false);
     }
-    this.appendValueInput("VALUE").setCheck("Number").appendField(Blockly.Msg['SB_SET_EFFECT_PARAM_VALUE'] || "數值");
   }
 };
 
@@ -177,5 +198,5 @@ Blockly.Blocks['sb_update_adsr'] = {
   }
 };
 
-// Register Mutators
+// Register Extensions
 Blockly.Extensions.registerMutator('setup_effect_mutator', window.SB_Utils.SETUP_EFFECT_MUTATOR, undefined);

@@ -1,99 +1,22 @@
 /**
  * HarmoNyx Pre-init Utility
- * 
- * 由於 Vite 的 ESM 模組提升 (Hoisting) 特性，積木定義檔案會早於 main.js 中的賦值語句執行。
- * 此檔案負責初始化所有全局變數、Mutators 與輔助函式，必須在 main.js 的第一行被導入。
  */
 
 window.SB_Utils = window.SB_Utils || {};
 
 /**
- * --- Blockly API Polyfills (v12 to v13 compatibility) ---
+ * --- Blockly API Polyfills ---
  */
 window.SB_Utils.initPolyfills = function() {
     if (Blockly.Workspace.prototype.getAllVariables === undefined) {
-        Blockly.Workspace.prototype.getAllVariables = function() {
-            return this.getVariableMap().getAllVariables();
-        };
+        Blockly.Workspace.prototype.getAllVariables = function() { return this.getVariableMap().getAllVariables(); };
     }
     if (Blockly.Workspace.prototype.getVariable === undefined) {
-        Blockly.Workspace.prototype.getVariable = function(name, opt_type) {
-            return this.getVariableMap().getVariable(name, opt_type);
-        };
+        Blockly.Workspace.prototype.getVariable = function(name, opt_type) { return this.getVariableMap().getVariable(name, opt_type); };
     }
     if (Blockly.Workspace.prototype.getVariableById === undefined) {
-        Blockly.Workspace.prototype.getVariableById = function(id) {
-            return this.getVariableMap().getVariableById(id);
-        };
+        Blockly.Workspace.prototype.getVariableById = function(id) { return this.getVariableMap().getVariableById(id); };
     }
-};
-
-/**
- * --- Key Management System ---
- */
-window.SB_Utils.KEYS = {
-    SYSTEM: ['up', 'down', 'left', 'right', '+', '-', 'backspace'],
-    PIANO: ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u', 'i', '9', 'o', '0', 'p', '[', ']', '\\'],
-    ALL: 'abcdefghijklmnopqrstuvwxyz1234567890[]\\\\;,./'.split('')
-};
-
-window.SB_Utils.getAvailableKeys = function(currentBlock) {
-    const workspace = currentBlock.workspace;
-    const hasStage = workspace.getAllBlocks(false).some(b => b.type === 'visual_stage_setup');
-    const occupiedKeys = new Set();
-    workspace.getAllBlocks(false).forEach(b => {
-        if (b !== currentBlock && (b.type === 'ui_key_event' || b.type === 'ui_key_pressed')) {
-            const val = b.getFieldValue('KEY');
-            if (val) occupiedKeys.add(val.toLowerCase());
-        }
-    });
-    const options = [];
-    window.SB_Utils.KEYS.ALL.forEach(k => {
-        if (window.SB_Utils.KEYS.SYSTEM.includes(k)) return;
-        if (hasStage && window.SB_Utils.KEYS.PIANO.includes(k)) return;
-        if (occupiedKeys.has(k)) return;
-        options.push([k.toUpperCase(), k]);
-    });
-    return options.length > 0 ? options : [['(無可用按鍵)', 'NONE']];
-};
-
-window.SB_Utils.checkKeyConflicts = function(workspace) {
-    const hasStage = workspace.getAllBlocks(false).some(b => b.type === 'visual_stage_setup');
-    const usedKeys = new Map();
-    workspace.getAllBlocks(false).forEach(b => {
-        if (b.type === 'ui_key_event' || b.type === 'ui_key_pressed') {
-            const k = b.getFieldValue('KEY');
-            if (!k) return;
-            const isPiano = window.SB_Utils.KEYS.PIANO.includes(k.toLowerCase());
-            if (hasStage && isPiano) {
-                b.setWarningText(Blockly.Msg['SB_KEY_CONFLICT_STAGE'] || "此按鍵已分配給「舞台鋼琴」功能，此積木將失效。");
-                if (typeof b.setDisabled === 'function') b.setDisabled(true);
-            } else if (usedKeys.has(k.toLowerCase())) {
-                b.setWarningText(Blockly.Msg['SB_KEY_CONFLICT_DUP'] || "此按鍵已被另一個積木重複定義。");
-                if (typeof b.setDisabled === 'function') b.setDisabled(true);
-            } else {
-                b.setWarningText(null);
-                if (typeof b.setDisabled === 'function') b.setDisabled(false);
-                usedKeys.set(k.toLowerCase(), b);
-            }
-        }
-    });
-};
-
-/**
- * --- Generator Helpers ---
- */
-window.SB_Utils.getInstrumentJavaName = function(name) {
-    const currentLabel = Blockly.Msg['SB_CURRENT_INSTRUMENT_OPTION'] || '當前選用的樂器';
-    const promptLabel = Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT'] || '(請選擇樂器)';
-    if (!name || name === currentLabel || name === promptLabel) return 'currentInstrument';
-    return '"' + name + '"';
-};
-
-window.SB_Utils.getRelativeIndex = function(atCode) {
-    if (!atCode) atCode = '1';
-    if (!isNaN(parseFloat(atCode)) && isFinite(atCode)) return String(Number(atCode) - 1);
-    return atCode + ' - 1';
 };
 
 /**
@@ -158,27 +81,18 @@ window.SB_Utils.hexToHue = function (hex) {
 };
 
 /**
- * --- Mutators (Ported from #stage) ---
+ * --- Mutators ---
  */
 window.SB_Utils.FIELD_HELPER = {
     onchange: function (e) {
-        // 忽略非積木變更、拖曳中、或非本積木的事件
-        if (this.disposed || this.workspace.isDragging() || e.type !== Blockly.Events.BLOCK_CHANGE || e.blockId !== this.id) return;
-        // 僅監聽 EFFECT_TYPE 欄位的變更
+        if (this.disposed || e.type !== Blockly.Events.BLOCK_CHANGE || e.blockId !== this.id) return;
+        if (this.workspace && this.workspace.isClearing) return;
         if (e.name === 'EFFECT_TYPE') {
-            const block = this;
             const newValue = e.newValue;
-            // 使用 setTimeout 避開當前事件循環，防止 ID 衝突
-            setTimeout(() => {
-                if (!block.disposed && block.updateShape_) {
-                    try {
-                        Blockly.Events.disable(); // 暫停事件紀錄，防止影子積木銷毀時觸發移動事件
-                        block.updateShape_(newValue);
-                    } finally {
-                        Blockly.Events.enable();  // 恢復事件紀錄
-                    }
-                }
-            }, 0);
+            if (this.lastType_ !== newValue) {
+                this.updateShape_(newValue);
+                this.lastType_ = newValue;
+            }
         }
     }
 };
@@ -269,32 +183,32 @@ window.SB_Utils.RHYTHM_V2_MUTATOR = {
 
 window.SB_Utils.SETUP_EFFECT_MUTATOR = {
     mutationToDom: function () {
-        const c = Blockly.utils.xml.createElement('mutation');
-        c.setAttribute('effect_type', this.getFieldValue('EFFECT_TYPE') || 'filter');
-        if (this.getFieldValue('EFFECT_TYPE') === 'filter') {
-            c.setAttribute('filter_type_value', this.getFieldValue('FILTER_TYPE_VALUE') || 'lowpass');
-            c.setAttribute('filter_rolloff_value', this.getFieldValue('FILTER_ROLLOFF_VALUE') || '-12');
+        const container = Blockly.utils.xml.createElement('mutation');
+        const type = this.getFieldValue('EFFECT_TYPE') || 'filter';
+        container.setAttribute('effect_type', type);
+        if (type === 'filter') {
+            container.setAttribute('filter_type_value', this.getFieldValue('FILTER_TYPE_VALUE') || 'lowpass');
+            container.setAttribute('filter_rolloff_value', this.getFieldValue('FILTER_ROLLOFF_VALUE') || '-12');
         }
-        return c;
+        return container;
     },
-    domToMutation: function (xml) { this.updateShape_(xml.getAttribute('effect_type') || 'filter', xml); },
+    domToMutation: function (xml) { if (xml) this.updateShape_(xml.getAttribute('effect_type') || 'filter', xml); },
     updateShape_: function (type, xml) {
+        if (this.disposed) return;
+        if (this.workspace && this.workspace.isClearing) return;
+
+        // 恢復純粹的同步連動
         const params = ['FILTER_TYPE', 'FILTER_FREQ', 'FILTER_Q', 'FILTER_ROLLOFF', 'DELAY_TIME', 'FEEDBACK', 'BITDEPTH', 'THRESHOLD', 'RATIO', 'ATTACK', 'RELEASE', 'MAKEUP', 'WET', 'DISTORTION_AMOUNT', 'DECAY', 'PREDELAY', 'RATE', 'DEPTH', 'MOD_TYPE', 'SWEEP_INPUT', 'SWEEP_DEPTH_INPUT', 'JITTER_INPUT', 'ROOMSIZE', 'DAMPING'];
-        params.forEach(p => { 
-            const input = this.getInput(p);
-            if (input) {
-                // 安全銷毀連接的積木 (包含 Shadow)
-                if (input.connection && input.connection.isConnected()) {
-                    const target = input.connection.targetBlock();
-                    if (target) {
-                        target.unplug();
-                        if (target.isShadow()) target.dispose();
-                    }
-                }
-                this.removeInput(p); 
-            }
-        });
-        const addShadow = (name, num) => { const inp = this.getInput(name); if (inp && inp.connection && !xml) { const s = Blockly.utils.xml.textToDom('<shadow type="math_number"><field name="NUM">' + num + '</field></shadow>'); inp.connection.setShadowDom(s); } };
+        params.forEach(p => { if (this.getInput(p)) this.removeInput(p); });
+
+        const addShadow = (name, num) => { 
+            const inp = this.getInput(name); if (!inp || !inp.connection) return;
+            try {
+                const s = Blockly.utils.xml.textToDom('<shadow type="math_number"><field name="NUM">' + num + '</field></shadow>'); 
+                inp.connection.setShadowDom(s); 
+            } catch(e) {}
+        };
+
         if (type === 'filter') {
             this.appendDummyInput('FILTER_TYPE').setAlign(Blockly.ALIGN_RIGHT).appendField("類型").appendField(new Blockly.FieldDropdown([["lowpass", "lowpass"], ["highpass", "highpass"], ["bandpass", "bandpass"]]), "FILTER_TYPE_VALUE");
             this.appendValueInput('FILTER_FREQ').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("頻率");
@@ -317,12 +231,6 @@ window.SB_Utils.SETUP_EFFECT_MUTATOR = {
             this.appendValueInput('DAMPING').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("高頻衰減");
             this.appendValueInput('WET').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("乾濕比");
             addShadow('ROOMSIZE', 0.5); addShadow('DAMPING', 0.5); addShadow('WET', 0.3);
-        } else if (type === 'flanger') {
-            this.appendValueInput('DELAY_TIME').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("中心延遲");
-            this.appendValueInput('RATE').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("速率");
-            this.appendValueInput('DEPTH').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("深度");
-            this.appendValueInput('FEEDBACK').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("回饋量");
-            addShadow('DELAY_TIME', 1); addShadow('RATE', 0.5); addShadow('DEPTH', 1); addShadow('FEEDBACK', 0.5);
         } else if (type === 'compressor') {
             this.appendValueInput('THRESHOLD').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("閾值(dB)");
             this.appendValueInput('RATIO').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("壓縮比");
@@ -346,12 +254,20 @@ window.SB_Utils.SETUP_EFFECT_MUTATOR = {
             this.appendValueInput('DEPTH').setCheck("Number").setAlign(Blockly.ALIGN_RIGHT).appendField("深度");
             addShadow('RATE', 5); addShadow('DEPTH', 10);
         }
+        if (this.rendered && this.render) this.render();
     }
 };
 
-// Global Aliases
+/**
+ * --- Key Management ---
+ */
+window.SB_Utils.KEYS = {
+    SYSTEM: ['up', 'down', 'left', 'right', '+', '-', 'backspace'],
+    PIANO: ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u', 'i', '9', 'o', '0', 'p', '[', ']', '\\'],
+    ALL: 'abcdefghijklmnopqrstuvwxyz1234567890[]\\\\;,./'.split('')
+};
+
 window.SB_KEYS = window.SB_Utils.KEYS;
 window.getAvailableKeys = window.SB_Utils.getAvailableKeys;
 window.checkKeyConflicts = window.SB_Utils.checkKeyConflicts;
 window.createInstrumentField = window.SB_Utils.createInstrumentField;
-window.getChordDropdown = window.SB_Utils.getChordDropdown;

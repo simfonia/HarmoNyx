@@ -4,288 +4,69 @@
 
 export const UIUtils = {
     /**
-     * 初始化積木搜尋功能 (ResizeObserver 強化版)
+     * 初始化積木搜尋功能
      */
     initSearch: (workspace) => {
         const BlockSearcher = {
             _cache: new Map(),
             _searchTimeout: null,
-
             buildIndex: function() {
                 this._cache.clear();
                 const types = Object.keys(Blockly.Blocks);
-                const msgCache = new Map();
-                Object.keys(Blockly.Msg).forEach(key => { 
-                    msgCache.set(key.toUpperCase(), String(Blockly.Msg[key]).toLowerCase()); 
-                });
-
                 types.forEach(type => {
-                    let searchBlob = type.toLowerCase();
-                    const blockDef = Blockly.Blocks[type];
-                    if (!blockDef) return;
-                    const typeUpper = type.toUpperCase();
-                    msgCache.forEach((val, key) => { 
-                        if (key.includes(typeUpper) || typeUpper.includes(key)) searchBlob += ' ' + val; 
-                    });
-                    for (let i = 0; i < 10; i++) {
-                        const msg = blockDef['message' + i];
-                        if (msg && typeof msg === 'string') searchBlob += ' ' + msg.replace(/%\d+/g, '').toLowerCase();
-                    }
-                    if (type.includes('set_')) searchBlob += ' 設定 set change';
-                    if (type.includes('get_')) searchBlob += ' 取得 get read';
-                    if (type.includes('play')) searchBlob += ' 演奏 播放 play music';
-                    this._cache.set(type, searchBlob);
+                    let blob = type.toLowerCase();
+                    const def = Blockly.Blocks[type];
+                    if (def) { for(let i=0; i<10; i++) { const m = def['message'+i]; if(typeof m === 'string') blob += ' ' + m.replace(/%\d+/g,'').toLowerCase(); } }
+                    this._cache.set(type, blob);
                 });
             },
-
             inject: function(ws) {
                 const blocklyDiv = document.getElementById('blocklyDiv');
                 const toolboxDiv = document.querySelector('.blocklyToolboxDiv');
                 if (!blocklyDiv || !toolboxDiv || document.getElementById('block-search-container')) return;
-
                 const searchDiv = document.createElement('div');
                 searchDiv.id = 'block-search-container';
-                searchDiv.innerHTML = `
-                    <input type="text" id="block-search" placeholder="搜尋積木..." autocomplete="off">
-                    <img src="/icons/cancel_24dp_FE2F89.png" id="search-clear-btn" class="nyx-icon-neon" title="清除搜尋 (Esc)">
-                `;
+                searchDiv.innerHTML = `<input type="text" id="block-search" placeholder="搜尋積木..." autocomplete="off"><img src="/icons/cancel_24dp_FE2F89.png" id="search-clear-btn" class="nyx-icon-neon" style="display:none">`;
                 blocklyDiv.appendChild(searchDiv);
-
                 const searchInput = document.getElementById('block-search');
-                const clearBtn = document.getElementById('search-clear-btn');
-
-                // --- 強化同步邏輯：直接觀察工具箱 DOM ---
-                const updateWidth = () => {
-                    const rect = toolboxDiv.getBoundingClientRect();
-                    if (rect.width > 0) {
-                        searchDiv.style.width = rect.width + 'px';
-                    }
-                };
-
-                try {
-                    const ro = new ResizeObserver(() => updateWidth());
-                    ro.observe(toolboxDiv);
-                    // 針對類別樹也進行觀察，因為寬度變化通常來自內容文字
-                    const treeRoot = document.querySelector('.blocklyTreeRoot');
-                    if (treeRoot) ro.observe(treeRoot);
-                } catch (e) {
-                    console.error("ResizeObserver failed:", e);
-                    window.addEventListener('resize', updateWidth);
-                }
-
-                const performSearch = (query) => {
-                    const toolbox = ws.getToolbox();
-                    const flyout = toolbox ? toolbox.getFlyout() : null;
-                    if (!flyout) return;
-
-                    if (!query) {
-                        if (toolbox) toolbox.clearSelection();
-                        flyout.hide();
-                        if (clearBtn) clearBtn.style.display = 'none';
-                        return;
-                    }
-
-                    if (clearBtn) clearBtn.style.display = 'block';
-                    const matchedTypes = [];
-                    query = query.toLowerCase();
-                    this._cache.forEach((blob, type) => { if (blob.includes(query)) matchedTypes.push(type); });
-
-                    matchedTypes.sort((a, b) => (a.startsWith(query) ? 0 : 1) - (b.startsWith(query) ? 0 : 1));
-                    const limitedResults = matchedTypes.slice(0, 30);
-
-                    if (limitedResults.length > 0) {
-                        const xmlList = limitedResults.map(type => {
-                            const blockXml = Blockly.utils.xml.createElement('block');
-                            blockXml.setAttribute('type', type);
-                            return blockXml;
-                        });
-                        try {
-                            flyout.show(xmlList);
-                            if (flyout.scrollToTop) flyout.scrollToTop();
-                        } catch (err) {}
-                    } else {
-                        flyout.hide();
-                    }
-                };
-
-                searchInput.addEventListener('input', (e) => {
+                const updateWidth = () => { const rect = toolboxDiv.getBoundingClientRect(); if (rect.width > 0) searchDiv.style.width = rect.width + 'px'; };
+                new ResizeObserver(updateWidth).observe(toolboxDiv);
+                searchInput.oninput = (e) => {
                     clearTimeout(this._searchTimeout);
-                    const val = e.target.value.trim();
-                    this._searchTimeout = setTimeout(() => performSearch(val), 200);
-                });
-
-                searchInput.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape') {
-                        searchInput.value = ''; performSearch(''); searchInput.blur();
-                    }
-                    e.stopPropagation();
-                });
-
-                if (clearBtn) {
-                    clearBtn.onclick = () => {
-                        searchInput.value = ''; performSearch(''); searchInput.focus();
-                    };
-                }
-                
-                // 初始執行一次
-                updateWidth();
+                    this._searchTimeout = setTimeout(() => {
+                        const query = e.target.value.toLowerCase().trim();
+                        const toolbox = ws.getToolbox();
+                        const flyout = toolbox ? toolbox.getFlyout() : null;
+                        if (!flyout) return;
+                        if (!query) { flyout.hide(); return; }
+                        const matched = []; this._cache.forEach((b, t) => { if(b.includes(query)) matched.push(t); });
+                        const xmlList = matched.slice(0, 20).map(t => { const x = Blockly.utils.xml.createElement('block'); x.setAttribute('type', t); return x; });
+                        flyout.show(xmlList);
+                    }, 200);
+                };
             }
         };
-
-        setTimeout(() => {
-            BlockSearcher.buildIndex();
-            BlockSearcher.inject(workspace);
-        }, 1500); 
-        return BlockSearcher;
+        setTimeout(() => { BlockSearcher.buildIndex(); BlockSearcher.inject(workspace); }, 1000);
     },
 
     /**
-     * 初始化側邊面板 (Stage Panel) 邏輯
+     * 初始化側邊面板
      */
     initStagePanel: () => {
         const panel = document.getElementById('stage-panel');
         const toggle = document.getElementById('stage-toggle');
-        const resizer = document.getElementById('panel-resizer');
         const logContainer = document.getElementById('log-container');
-        const clearBtn = document.getElementById('clear-log-btn');
-
-        if (toggle) {
-            toggle.onclick = () => {
-                panel.classList.toggle('collapsed');
-                setTimeout(() => window.dispatchEvent(new Event('resize')), 310);
-            };
-        }
-
-        // --- 面板寬度拖曳調整邏輯 ---
-        if (resizer && panel) {
-            let isDragging = false;
-            let startX, startWidth;
-
-            resizer.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                startX = e.clientX;
-                startWidth = panel.offsetWidth;
-                resizer.classList.add('is-dragging');
-                document.body.classList.add('resizing-panel');
-                e.preventDefault();
-            });
-
-            window.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                
-                // 計算新的寬度 (由右往左拉，所以是減法)
-                const dx = startX - e.clientX;
-                const newWidth = Math.max(200, Math.min(800, startWidth + dx));
-                
-                panel.style.width = `${newWidth}px`;
-                // 即時觸發 Resize 事件讓 Blockly 重新佈局
-                window.dispatchEvent(new Event('resize'));
-            });
-
-            window.addEventListener('mouseup', () => {
-                if (!isDragging) return;
-                isDragging = false;
-                resizer.classList.remove('is-dragging');
-                document.body.classList.remove('resizing-panel');
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.onclick = () => { if (logContainer) logContainer.innerHTML = ''; };
-        }
-
-        // --- Smart Panel Tabs Logic ---
+        if (toggle) toggle.onclick = () => { panel.classList.toggle('collapsed'); setTimeout(() => window.dispatchEvent(new Event('resize')), 310); };
         const tabs = document.querySelectorAll('.tab-btn');
         const panes = document.querySelectorAll('.tab-pane');
-
         tabs.forEach(tab => {
             tab.onclick = () => {
-                // Remove active from all
-                tabs.forEach(t => {
-                    t.classList.remove('active');
-                    const img = t.querySelector('img');
-                    if(img) img.style.filter = ''; // Reset filter if any
-                });
-                panes.forEach(p => p.classList.remove('active')); // CSS handles display:none
-
-                // Activate clicked
-                tab.classList.add('active');
-                const targetId = tab.getAttribute('data-tab');
-                const targetPane = document.getElementById(targetId);
-                if (targetPane) {
-                    targetPane.classList.add('active');
-                }
+                tabs.forEach(t => t.classList.remove('active')); panes.forEach(p => p.classList.remove('active'));
+                tab.classList.add('active'); const target = document.getElementById(tab.getAttribute('data-tab'));
+                if (target) target.classList.add('active');
             };
         });
-
-        return {
-            clearLog: () => { if (logContainer) logContainer.innerHTML = ''; },
-            appendLog: (msg, type = 'info') => {
-                if (!logContainer) return;
-                const div = document.createElement('div');
-                div.className = `log-line log-${type}`;
-                div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-                logContainer.appendChild(div);
-                logContainer.scrollTop = logContainer.scrollHeight;
-                if (logContainer.childNodes.length > 200) logContainer.removeChild(logContainer.firstChild);
-            }
-        };
-    },
-
-    /**
-     * 初始化 Minimap
-     */
-    initMinimap: (workspace) => {
-        const MinimapClass = window.PositionedMinimap || window.Minimap;
-        if (!MinimapClass) return;
-
-        try {
-            const minimap = new MinimapClass(workspace);
-            minimap.init();
-            
-            let toggleBtn = document.getElementById('minimap-toggle');
-            if (!toggleBtn) {
-                toggleBtn = document.createElement('div');
-                toggleBtn.id = 'minimap-toggle';
-                toggleBtn.innerHTML = '<img src="/icons/cancel_24dp_FE2F89.png" class="nyx-icon-purple">';
-                toggleBtn.title = "切換小地圖 (Ctrl+M)";
-                const blocklyDiv = document.getElementById('blocklyDiv');
-                if (blocklyDiv) blocklyDiv.appendChild(toggleBtn);
-            }
-
-            const toggleIcon = toggleBtn.querySelector('img');
-
-            const updateToggleState = (isCollapsed) => {
-                const mDiv = document.querySelector('.blockly-minimap');
-                if (mDiv) {
-                    if (isCollapsed) {
-                        mDiv.style.setProperty('display', 'none', 'important');
-                        mDiv.classList.add('collapsed');
-                        if (toggleIcon) toggleIcon.src = "/icons/public_24dp_FE2F89.png";
-                    } else {
-                        mDiv.style.setProperty('display', 'block', 'important');
-                        mDiv.classList.remove('collapsed');
-                        if (toggleIcon) toggleIcon.src = "/icons/cancel_24dp_FE2F89.png";
-                    }
-                }
-            };
-
-            if (toggleBtn) {
-                toggleBtn.onclick = () => {
-                    const mDiv = document.querySelector('.blockly-minimap');
-                    const currentlyCollapsed = mDiv ? (mDiv.style.display === 'none' || mDiv.classList.contains('collapsed')) : false;
-                    updateToggleState(!currentlyCollapsed);
-                };
-            }
-
-            document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey && (e.key === 'm' || e.key === 'M')) {
-                    const mDiv = document.querySelector('.blockly-minimap');
-                    const currentlyCollapsed = mDiv ? (mDiv.style.display === 'none' || mDiv.classList.contains('collapsed')) : false;
-                    updateToggleState(!currentlyCollapsed);
-                }
-            });
-        } catch (e) { console.error("Minimap fail:", e); }
+        return { appendLog: (msg, type='info') => { if(!logContainer) return; const d = document.createElement('div'); d.className = `log-line log-${type}`; d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`; logContainer.appendChild(d); logContainer.scrollTop = logContainer.scrollHeight; } };
     },
 
     /**
@@ -294,69 +75,31 @@ export const UIUtils = {
     injectNaNShield: () => {
         const originalSetAttribute = Element.prototype.setAttribute;
         Element.prototype.setAttribute = function(name, value) {
-            // 強化檢查：針對 transform="translate(NaN,NaN)"
             if (typeof value === 'string' && (value.includes('NaN') || value.includes('undefined'))) {
-                if (name === 'transform') return; // 直接忽略無效的 transform
+                if (name === 'transform') return;
                 if (name === 'x' || name === 'y' || name === 'width' || name === 'height' || name === 'd') return;
             }
-            // 針對數值類型的 NaN
             if ((name === 'x' || name === 'y' || name === 'width' || name === 'height' || name === 'd') && 
-                (Number.isNaN(value) || typeof value === 'undefined')) {
-                return;
-            }
+                (Number.isNaN(value) || typeof value === 'undefined')) return;
             originalSetAttribute.apply(this, arguments);
         };
     },
 
     /**
-     * --- Orphan Block System (Ported from #stage) ---
+     * --- Orphan Block System ---
      */
-    VALID_ROOTS: [
-        'processing_setup',
-        'processing_draw',
-        'processing_exit',
-        'ui_key_event',
-        'sb_perform',
-        'sb_tone_loop',
-        'sb_instrument_container',
-        'sb_define_chord',
-        'sb_serial_data_received',
-        'midi_on_note',
-        'midi_off_note',
-        'midi_on_controller_change',
-        'procedures_defnoreturn',
-        'procedures_defreturn',
-        'sb_comment'
-    ],
-
+    VALID_ROOTS: ['processing_setup', 'processing_draw', 'processing_exit', 'ui_key_event', 'sb_perform', 'sb_tone_loop', 'sb_instrument_container', 'sb_define_chord', 'sb_serial_data_received', 'midi_on_note', 'midi_off_note', 'midi_on_controller_change', 'procedures_defnoreturn', 'procedures_defreturn', 'sb_comment'],
     updateOrphanBlocks: (ws) => {
         if (!ws || ws.isDragging()) return;
-
-        // 使用 Blockly 的事件群組功能來避免 undo 堆疊污染
-        Blockly.Events.setGroup(true);
-        try {
-            const topBlocks = ws.getTopBlocks(false);
-            topBlocks.forEach(topBlock => {
-                const isOrphan = !UIUtils.VALID_ROOTS.includes(topBlock.type);
-                
-                // 如果是孤兒，則其所有子積木也都視為孤兒 (變灰)
-                // 如果是合法根，則其所有子積木都正常顯示
-                topBlock.getDescendants(false).forEach(block => {
-                    // 防禦性程式設計：確保方法存在 (Blockly 版本相容)
-                    if (block.setDisabledReason) {
-                        const hasOrphanReason = block.hasDisabledReason('orphan');
-                        // 僅在狀態改變時才觸發更新，減少 DOM 重繪
-                        if (hasOrphanReason !== isOrphan) {
-                            block.setDisabledReason(isOrphan, 'orphan');
-                        }
-                    } else if (block.setDisabled) {
-                        // 舊版備援
-                        block.setDisabled(isOrphan);
-                    }
-                });
+        const topBlocks = ws.getTopBlocks(false);
+        topBlocks.forEach(topBlock => {
+            const isOrphan = !UIUtils.VALID_ROOTS.includes(topBlock.type);
+            topBlock.getDescendants(false).forEach(block => {
+                if (block.setDisabledReason) {
+                    const hasOrphanReason = block.hasDisabledReason('orphan');
+                    if (hasOrphanReason !== isOrphan) block.setDisabledReason(isOrphan, 'orphan');
+                } else if (block.setDisabled) block.setDisabled(isOrphan);
             });
-        } finally {
-            Blockly.Events.setGroup(false);
-        }
+        });
     }
 };

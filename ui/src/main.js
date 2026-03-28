@@ -6,6 +6,7 @@ import './style.css';
 import './lang/zh-hant.js';
 
 import { UIUtils } from './modules/ui_utils.js';
+import { VisualMinimap } from './modules/minimap.js';
 import { FieldADSR, EnvelopeManager } from './modules/visualizer.js';
 import './blocks/structure.js';
 import './blocks/audio_core.js';
@@ -380,7 +381,7 @@ document.getElementById('run-btn').onclick = async () => {
 document.getElementById('stop-btn').onclick = () => { isProcessing = false; invoke('stop_processing'); };
 
 setTimeout(async () => { 
-    Blockly.svgResize(workspace); UIUtils.initMinimap(workspace); UIUtils.initSearch(workspace); 
+    Blockly.svgResize(workspace); new VisualMinimap(workspace); UIUtils.initSearch(workspace); 
     setTimeout(createDefaultBlocks, 200);
     try { await invoke('run_processing', { code: "exit();" }); } catch (err) {}
 }, 300);

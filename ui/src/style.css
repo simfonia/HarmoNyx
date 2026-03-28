@@ -89,11 +89,6 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
 
 .blocklyFlyout { z-index: 60 !important; margin-top: 0 !important; }
 
-/* Minimap */
-#minimap-toggle { position: absolute; top: 15px; right: 15px; width: 32px; height: 32px; background-color: var(--nyx-bg-panel); border: 1px solid var(--nyx-border); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; z-index: 101; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-.blockly-minimap { right: 15px !important; top: 55px !important; z-index: 100 !important; border: 1px solid var(--nyx-border) !important; }
-.blockly-minimap.collapsed { display: none !important; }
-
 /* 右側面板 */
 #stage-panel { 
     width: 350px; 
