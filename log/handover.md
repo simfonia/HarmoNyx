@@ -49,3 +49,11 @@
     - **孤兒積木樣式**: 將未連接積木的樣式由單純變淡改為 **紅色邊框 (stroke)** 加 **高透明度 (0.9)**，大幅提升辨識度。
     - **翻譯補全**: 補上了 sb_create_harmonic_synth 與 sb_create_additive_synth 變連選單中的缺漏字串。
 
+## 2026-03-26 (輔助面板重構與跨平台說明文件內嵌)
+- **Smart Panel 優化**:
+    - **標題**: 改為顯示 `ID: <type>`，提供純粹的技術索引。
+    - **內嵌說明**: 實作 `iframe + srcdoc` 功能，支援直接在 IDE 內顯示 HTML 說明。
+- **跨平台解決方案**:
+    - **後端指令**: 新增 `get_doc_content` 與 `get_docs_path` 指令，解決 Vite 無法讀取外部 Resources 的問題。
+    - **穩定性**: 捨棄了 Windows Junction 方案，現在開發環境不需要額外 OS 設置。
+- **Melody 文件更新**: 新增「音名與八度表示 (Note Names & Octaves)」章節，並完成中英文同步。

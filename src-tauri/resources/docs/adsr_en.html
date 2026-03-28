@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ADSR Envelope Guide</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; color: #333; }
+        h1 { color: #FF5722; }
+        h2 { color: #444; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .type-box { margin-bottom: 20px; padding: 15px; background: #FFF7F5; border-radius: 8px; border-left: 5px solid #FF5722; }
+        code { background: #eee; padding: 2px 4px; border-radius: 4px; color: #D35400; font-weight: bold; }
+        .example { background: #fffbe6; padding: 10px; border-left: 4px solid #ffc107; margin: 10px 0; font-family: monospace; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .param { font-weight: bold; color: #E67E22; }
+    </style>
+</head>
+<body>
+    <h1>ADSR Envelope</h1>
+    <p>ADSR is a model used to control how a sound changes over time. it defines the volume (or filter) curve from the moment a note starts until it ends.</p>
+
+    <div class="type-box">
+        <h2>1. Parameter Definitions</h2>
+        <table>
+            <tr><th>Parameter</th><th>Name</th><th>Description</th></tr>
+            <tr><td><span class="param">A</span> (Attack)</td><td>Attack</td><td>The time it takes for the sound to reach its peak level.</td></tr>
+            <tr><td><span class="param">D</span> (Decay)</td><td>Decay</td><td>The time it takes for the sound to drop to the Sustain level.</td></tr>
+            <tr><td><span class="param">S</span> (Sustain)</td><td>Sustain</td><td>The constant volume level while the key is held (0.0 - 1.0).</td></tr>
+            <tr><td><span class="param">R</span> (Release)</td><td>Release</td><td>The time it takes for the sound to fade out after the key is released.</td></tr>
+        </table>
+    </div>
+
+    <div class="type-box">
+        <h2>2. Common Sound Presets</h2>
+        <ul>
+            <li><strong>Piano</strong>: Very fast attack, moderate sustain, moderate release.
+                <div class="example">A: 0.01, D: 0.3, S: 0.4, R: 1.0</div>
+            </li>
+            <li><strong>Strings</strong>: Slow attack (fade-in), high sustain, slow release (long tail).
+                <div class="example">A: 0.5, D: 1.0, S: 0.8, R: 1.5</div>
+            </li>
+            <li><strong>Drums</strong>: Instant attack, fast decay, zero sustain.
+                <div class="example">A: 0.005, D: 0.1, S: 0.0, R: 0.1</div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>3. Pro Tip</h2>
+        <p>In HarmoNyx, you can observe the shape of these parameters via the <strong>visual chart</strong> on the block. A yellow light point will dance according to the playback progress.</p>
+    </div>
+</body>
+</html>

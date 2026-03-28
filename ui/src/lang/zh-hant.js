@@ -11,6 +11,8 @@
     "HARMONYX_RUN": "執行積木",
     "HARMONYX_STOP": "停止執行",
     "HARMONYX_SETTINGS": "系統設定",
+    "HARMONYX_OPEN_SAMPLES": "開啟聲音取樣檔資料夾",
+    "HARMONYX_SET_PATH": "設定 processing-java 路徑",
     "HARMONYX_UPDATE_CHECK": "檢查更新",
     "HARMONYX_RESTART_AUDIO": "重啟音訊引擎",
     "HARMONYX_LANG_SETTING": "語言 (Language)",

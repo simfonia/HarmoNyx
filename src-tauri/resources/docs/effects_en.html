@@ -5,9 +5,9 @@
     <title>Audio Effects Help</title>
     <style>
         body { font-family: sans-serif; line-height: 1.6; padding: 20px; color: #333; max-width: 900px; margin: 0 auto; }
-        h1 { color: #D22F73; border-bottom: 3px solid #D22F73; padding-bottom: 10px; }
+        h1 { color: #8E44AD; border-bottom: 3px solid #8E44AD; padding-bottom: 10px; }
         h2 { color: #444; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 30px; }
-        .block-box { margin-bottom: 25px; padding: 15px; background: #fff5f8; border-radius: 8px; border-left: 5px solid #D22F73; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .block-box { margin-bottom: 25px; padding: 15px; background: #F9F5FB; border-radius: 8px; border-left: 5px solid #8E44AD; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         code { background: #eee; padding: 2px 4px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
         .important { background-color: #fffbe6; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
         .tip { background-color: #e8f4fd; border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
@@ -28,8 +28,8 @@
         <h2>1. Filter (MoogFilter)</h2>
         <p>Simulates the classic Moog low-pass filter to shape brightness.</p>
         <ul>
-            <li><strong>Frequency</strong> <span class="range">[20 - 20000 Hz]</span>: The cutoff frequency. Lower values make the sound "muffled".</li>
-            <li><strong>Resonance (Q)</strong> <span class="range">[0.0 - 0.9]</span>: Adds emphasis at the cutoff point. Higher values create a sharp, "electronic" character.</li>
+            <li><strong>Frequency</strong> <span class="range">[Range: 20 - 20000 Hz]</span>: The cutoff frequency. Lower values make the sound "muffled".</li>
+            <li><strong>Resonance (Q)</strong> <span class="range">[Range: 0.0 - 0.9]</span>: Adds emphasis at the cutoff point. Higher values create a sharp, "electronic" character. (Values >= 1.0 are limited to prevent ear-piercing feedback).</li>
         </ul>
     </div>
 
@@ -37,22 +37,28 @@
         <h2>2. Delay</h2>
         <p>Creates repetitive echoes, adding space and depth.</p>
         <ul>
-            <li><strong>Delay Time</strong> <span class="range">[0.0 - 5.0 s]</span>: The interval between echoes.</li>
-            <li><strong>Feedback</strong>: How many times the echo repeats.</li>
+            <li><strong>Delay Time</strong> <span class="range">[Range: 0.001 - 5.0 s]</span>: The interval between echoes.</li>
+            <li><strong>Feedback</strong> <span class="range">[Range: 0.0 - 0.95]</span>: How many times the echo repeats. (Limited below 1.0 to avoid infinite loops).</li>
         </ul>
     </div>
 
     <div class="block-box">
         <h2>3. Reverb</h2>
         <p>Simulates dense reflections in a large room, making the sound fuller and more immersive.</p>
+        <ul>
+            <li><strong>Room Size</strong> <span class="range">[Range: 0.0 - 1.0]</span>: The dimension of the virtual space.</li>
+            <li><strong>Damping</strong> <span class="range">[Range: 0.0 - 1.0]</span>: High-frequency absorption. Higher values sound "softer".</li>
+            <li><strong>Wet</strong> <span class="range">[Range: 0.0 - 1.0]</span>: The balance between original and effected sound.</li>
+        </ul>
     </div>
 
     <div class="block-box">
         <h2>4. Auto-Filter</h2>
         <p>Uses an LFO to automatically sweep the filter frequency, creating "Wah-wah" or breathing effects.</p>
         <ul>
-            <li><strong>Rate</strong>: The speed of the sweep.</li>
-            <li><strong>Depth %</strong>: The range of frequency modulation.</li>
+            <li><strong>Rate</strong> <span class="range">[Range: 0.01 - 20.0 Hz]</span>: The speed of the sweep.</li>
+            <li><strong>Depth %</strong> <span class="range">[Range: 0 - 100%]</span>: The range of frequency modulation.</li>
+            <li><strong>Resonance (Q)</strong> <span class="range">[Range: 0.0 - 0.9]</span>: Filter sharpness.</li>
         </ul>
     </div>
 
@@ -66,9 +72,10 @@
                     <li><strong>Jitter</strong>: Uses high-speed random noise. Sounds like "grit" or "texture" rather than pitch change.</li>
                 </ul>
             </li>
-            <li><strong>Depth</strong> <span class="range">[Unit: Cents]</span>:
+            <li><strong>Rate</strong> <span class="range">[Range: 0.1 - 50.0 Hz]</span>: Modulation speed (mostly for Vibrato).</li>
+            <li><strong>Depth</strong> <span class="range">[Range: 0 - 1200 Cents]</span>:
                 <ul>
-                    <li>In <strong>Vibrato</strong>, it's the radius of the pitch swing.</li>
+                    <li>In <strong>Vibrato</strong>, it's the radius of the pitch swing (1200 cents = 1 Octave).</li>
                     <li>In <strong>Jitter</strong>, it represents the "width of pitch blur." Simulates tape motor instability for a vintage feel.</li>
                 </ul>
             </li>
@@ -78,16 +85,28 @@
     <div class="block-box">
         <h2>6. BitCrush</h2>
         <p>Reduces audio resolution for a raw, 8-bit vintage game sound (Lo-Fi).</p>
+        <ul>
+            <li><strong>Bit Depth</strong> <span class="range">[Range: 1.0 - 16.0 Bits]</span>: Resolution of the audio. Lower is crunchier.</li>
+        </ul>
     </div>
 
     <div class="block-box">
         <h2>7. Waveshaper</h2>
         <p>Provides warm, analog-style saturation and distortion using a <code>tanh</code> function.</p>
+        <ul>
+            <li><strong>Distortion Amount</strong> <span class="range">[Range: 0.1 - 100.0]</span>: Drive level. Higher values approach a square wave.</li>
+        </ul>
     </div>
 
     <div class="block-box">
         <h2>8. Dynamics (Compressor & Limiter)</h2>
         <p>Controls volume fluctuations to prevent clipping and add "punch" to the sound.</p>
+        <ul>
+            <li><strong>Threshold</strong> <span class="range">[Range: -80.0 to 0.0 dB]</span>: The level above which compression starts.</li>
+            <li><strong>Ratio</strong> <span class="range">[Range: 1.0 to 100.0]</span>: Compression intensity (e.g., 4 means 4:1).</li>
+            <li><strong>Attack/Release</strong> <span class="range">[Range: 0.001 - 2.0 s]</span>: Response speed.</li>
+            <li><strong>Makeup Gain</strong> <span class="range">[Range: 0.0 to 24.0 dB]</span>: Post-compression volume boost.</li>
+        </ul>
     </div>
 
     <div class="tip">

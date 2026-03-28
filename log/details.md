@@ -19,7 +19,7 @@
 - **問題**: 當使用 `resources: ["../resources/**/*"]` 進行打包時，WiX/Tauri 預設會保留相對路徑結構，導致安裝後出現 `_up_` 資料夾，破壞程式的路徑查找邏輯。
 - **解法**: 使用物件語法進行明確映射：`{ "src": "../resources", "target": "resources" }`。這會將外部資源直接平鋪到安裝目錄下的 `resources/`，確保開發與生產環境的路徑結構一致。
 
-## Windows 子進程黑窗隱藏 (CREATE_NO_WINDOW)
+## Windows 子進程黑窗隱裝 (CREATE_NO_WINDOW)
 - **問題**: 在 Windows GUI 應用程式中透過 `std::process::Command` 執行 Console 程式 (如 `processing-java` 或 `cmd /c taskkill`) 時，會短暫跳出黑色的命令提示字元視窗，影響使用者體驗。
 - **解法**: 必須使用 Windows 特有的擴充 trait `std::os::windows::process::CommandExt`。
 - **實作**: 在建立 `Command` 物件後，呼叫 `.creation_flags(0x08000000)`。這個 flag 對應 Win32 API 的 `CREATE_NO_WINDOW`，能確保子進程在無窗模式下執行。
@@ -34,6 +34,21 @@
 \Blockly.Processing.definitions_\ 中的 Key 必須唯一。若 \_core.js\ 與 \isual_core.js\ 同時定義 \Helpers\，後者會覆寫前者。目前已將核心工具與視覺工具的 Key 分離，並移除 \java_libs.js\ 中重複的基礎函式。
 
 # HarmoNyx 技術細節 (Details)
+
+## 2026-03-26 輔助面板 (Smart Panel) 優化與跨平台內嵌說明
+### 1. 顯示邏輯重構
+- **標題簡化**: 標題改為顯示 `ID: <block_type>` (例如 `ID: <visual_stage_setup>`)。這避免了與積木本身文字敘述的重複，並提供開發者所需的技術 ID。樣式採用 `Fira Code` 等寬字體與紫色霓虹光暈。
+- **Tooltip 整合**: 積木的 `getTooltip()` 內容被移至說明文件的下方，作為快速功能摘要。
+
+### 2. 跨平台內嵌說明 (srcdoc 方案)
+- **核心挑戰**: Vite 開發伺服器無法存取 `ui/public` 以外的外部目錄 (如 `src-tauri/resources/docs`)，導致 `iframe` 直接請求路徑時會失敗或回退到首頁。
+- **解決方案**: 
+    1.  **Rust 指令**: 新增 `get_doc_content` 指令，由後端負責讀取實體檔案內容。
+    2.  **前端注入**: 前端調用指令獲取 HTML 字串後，透過 `iframe.srcdoc` 進行注入。
+- **優點**: 
+    - **完全跨平台**: 擺脫了 Windows Junction 或 Unix Symlink 的作業系統依賴。
+    - **穩定路徑**: 由 Rust 後端處理搜尋優先順序 (Resource Dir -> Dev Dir)，保證在開發與生產環境都能正確找到說明文件。
+    - **無權限問題**: 避免了開啟 `asset` 協定的安全與配置複雜度。
 
 ## Blockly 顏色欄位修復 (CustomFieldColour)
 由於 `field-colour.js` (第三方插件) 在下拉選單中使用 DOM 元素作為標籤，導致新版 Blockly 崩潰。我們在 `main.js` 中實作了 `CustomFieldColour` 類別：
@@ -88,7 +103,7 @@ Minimap 預設不會監聽單純的點擊事件。我們在 `ui_utils.js` 的 `i
 在實作具備動態插槽 (Dynamic Inputs) 的變連積木 (Mutator) 時，若同時使用 Validator 與 onchange 監聽器觸發 updateShape_，會導致重複調用，進而引發「找不到積木 ID (non-existent block)」錯誤。
 
 ### 關鍵陷阱 (The Pitfall)
-1.  **影子積木銷毀**: emoveInput 會自動銷毀連接在上面的 Shadow Block。這會觸發 Blockly 的 Delete 事件。
+1.  **影子積木銷毀**: emoveInput 會自動銷毀連接在上面的 Shadow Block。這會觸發 Blockly 的 Delete 事件。
 2.  **事件衝突**: 如果此時使用者正在進行拖曳或其他操作，Blockly 的事件系統可能會嘗試引用那個「剛被標記為銷毀」的 Shadow Block ID。
 3.  **非同步風險**: 若產生器 (Generator) 在插槽重建完成前執行，會讀取到空插槽，導致 ReferenceError。
 
@@ -97,4 +112,3 @@ Minimap 預設不會監聽單純的點擊事件。我們在 `ui_utils.js` 的 `i
 2.  **安全銷毀**: 在 updateShape_ 中移除 Input 前，必須先手動斷開 (unplug) 並銷毀 (dispose) 連接的積木，確保 ID 從索引中徹底移除。
 3.  **非同步變連 (Async Mutation)**: 使用 setTimeout(..., 0) 將結構變更推遲到事件循環之後。
 4.  **防禦性產生器**: 產生器必須使用 lock.getInput() 檢查插槽是否存在，若不存在則回傳預設值，以容忍非同步更新的時間差。
-

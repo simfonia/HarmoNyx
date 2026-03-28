@@ -5,9 +5,9 @@
     <title>音訊效果器積木說明</title>
     <style>
         body { font-family: sans-serif; line-height: 1.6; padding: 20px; color: #333; max-width: 900px; margin: 0 auto; }
-        h1 { color: #D22F73; border-bottom: 3px solid #D22F73; padding-bottom: 10px; }
+        h1 { color: #8E44AD; border-bottom: 3px solid #8E44AD; padding-bottom: 10px; }
         h2 { color: #444; border-bottom: 2px solid #eee; padding-bottom: 5px; margin-top: 30px; }
-        .block-box { margin-bottom: 25px; padding: 15px; background: #fff5f8; border-radius: 8px; border-left: 5px solid #D22F73; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .block-box { margin-bottom: 25px; padding: 15px; background: #F9F5FB; border-radius: 8px; border-left: 5px solid #8E44AD; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         code { background: #eee; padding: 2px 4px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
         .important { background-color: #fffbe6; border-left: 4px solid #ffc107; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
         .tip { background-color: #e8f4fd; border-left: 4px solid #3498db; padding: 15px; margin: 15px 0; border-radius: 0 8px 8px 0; }
@@ -28,8 +28,8 @@
         <h2>1. 濾波器 (Filter / MoogFilter)</h2>
         <p>模擬經典的 Moog 合成器低通濾波器，能修飾聲音的明暗度。</p>
         <ul>
-            <li><strong>頻率 (Frequency)</strong> <span class="range">[20 - 20000 Hz]</span>：切斷頻率。數值愈低，聲音愈悶。</li>
-            <li><strong>共振 (Resonance/Q)</strong> <span class="range">[0.0 - 0.9]</span>：在切斷頻率處產生強調。數值愈高，音色愈尖銳。</li>
+            <li><strong>頻率 (Frequency)</strong> <span class="range">[範圍: 20 - 20000 Hz]</span>：切斷頻率。數值愈低，聲音愈悶。</li>
+            <li><strong>共振 (Resonance/Q)</strong> <span class="range">[範圍: 0.0 - 0.9]</span>：在切斷頻率處產生強調。數值愈高，音色愈尖銳。（若設定大於 1.0 會被限制以防止產生刺耳迴授）。</li>
         </ul>
     </div>
 
@@ -37,8 +37,8 @@
         <h2>2. 延遲 (Delay)</h2>
         <p>產生重複的回聲效果，增加聲音的空間感與厚度。</p>
         <ul>
-            <li><strong>延遲時間 (Delay Time)</strong> <span class="range">[0.0 - 5.0 秒]</span>：原始聲音與回聲之間的時間間隔。</li>
-            <li><strong>回饋 (Feedback)</strong> <span class="range">[0.0 - 1.0]</span>：回聲循環的次數。</li>
+            <li><strong>延遲時間 (Delay Time)</strong> <span class="range">[範圍: 0.001 - 5.0 秒]</span>：原始聲音與回聲之間的時間間隔。</li>
+            <li><strong>回饋 (Feedback)</strong> <span class="range">[範圍: 0.0 - 0.95]</span>：回聲循環的次數。（限制在 1.0 以下以避免產生無限遞增的噪聲）。</li>
         </ul>
     </div>
 
@@ -46,8 +46,9 @@
         <h2>3. 混響 (Reverb)</h2>
         <p>模擬在大空間中產生的細密回響，讓聲音更豐滿、更具臨場感。</p>
         <ul>
-            <li><strong>房間大小 (Room Size)</strong>：空間的開闊程度。</li>
-            <li><strong>濕度 (Wet)</strong>：殘響效果的大小。0 為純原音，1 為純殘響。</li>
+            <li><strong>房間大小 (Room Size)</strong> <span class="range">[範圍: 0.0 - 1.0]</span>：空間的開闊程度。</li>
+            <li><strong>高頻衰減 (Damping)</strong> <span class="range">[範圍: 0.0 - 1.0]</span>：模擬材質吸收高頻。數值越高聲音越柔和。</li>
+            <li><strong>濕度 (Wet)</strong> <span class="range">[範圍: 0.0 - 1.0]</span>：殘響效果的大小。0 為純原音，1 為純殘響。</li>
         </ul>
     </div>
 
@@ -55,8 +56,9 @@
         <h2>4. 自動濾波 (Auto-Filter)</h2>
         <p>透過 LFO 自動控制濾波器掃頻，營造規律的頻率演變，產生類似「哇哇 (Wah-wah)」的動態聽感。</p>
         <ul>
-            <li><strong>速率 (Rate)</strong>：濾波器擺動的速度。</li>
-            <li><strong>深度 (Depth %)</strong>：濾波器移動的頻率範圍。</li>
+            <li><strong>速率 (Rate)</strong> <span class="range">[範圍: 0.01 - 20.0 Hz]</span>：濾波器擺動的速度。</li>
+            <li><strong>深度 (Depth %)</strong> <span class="range">[範圍: 0 - 100%]</span>：濾波器移動的頻率範圍。</li>
+            <li><strong>共振 (Q)</strong> <span class="range">[範圍: 0.0 - 0.9]</span>：濾波器的尖銳度。</li>
         </ul>
     </div>
 
@@ -66,14 +68,15 @@
         <ul>
             <li><strong>調變類型 (Type)</strong>：
                 <ul>
-                    <li><strong>顫音 (Vibrato)</strong>：使用規律的正弦波，聽起來像小提琴的揉弦，具音樂性（音高移動軌跡明顯）。</li>
-                    <li><strong>抖動 (Jitter)</strong>：使用極速跳動的隨機噪音。聽起來不像是變調，而是一種聲音邊緣的「毛邊感」或「粗糙質感」。</li>
+                    <li><strong>顫音 (Vibrato)</strong>：使用規律的正弦波，聽起來像小提琴的揉弦，具音樂性。</li>
+                    <li><strong>抖動 (Jitter)</strong>：使用極速跳動的隨機噪音。聽起來像是一種聲音邊緣的「粗糙質感」。</li>
                 </ul>
             </li>
-            <li><strong>深度 (Depth)</strong> <span class="range">[單位：音分 Cents]</span>：
+            <li><strong>速率 (Rate)</strong> <span class="range">[範圍: 0.1 - 50.0 Hz]</span>：調變的速度。</li>
+            <li><strong>深度 (Depth)</strong> <span class="range">[範圍: 0 - 1200 音分]</span>：
                 <ul>
-                    <li>在<strong>顫音</strong>中，它是音高擺動的半徑。</li>
-                    <li>在<strong>抖動</strong>中，它代表「音高模糊的寬度」。用於模擬老舊磁帶馬達轉速不穩的缺陷，讓音色更有生命力。</li>
+                    <li>在<strong>顫音</strong>中，它是音高擺動的半徑（1200 音分代表一個八度）。</li>
+                    <li>在<strong>抖動</strong>中，它代表「音高模糊的寬度」。用於模擬老舊磁帶馬達轉速不穩。</li>
                 </ul>
             </li>
         </ul>
@@ -82,16 +85,28 @@
     <div class="block-box">
         <h2>6. 位元破壞 (BitCrush)</h2>
         <p>降低音訊採樣精度，製造粗糙、復古的 8-bit 電玩音色（Lo-Fi）。</p>
+        <ul>
+            <li><strong>位元深度 (Bit Depth)</strong> <span class="range">[範圍: 1.0 - 16.0 Bits]</span>：解析度越低聲音越破碎。</li>
+        </ul>
     </div>
 
     <div class="block-box">
         <h2>7. 波形塑形 (Waveshaper)</h2>
         <p>提供溫暖且具有類比質感的失真效果。透過 <code>tanh</code> 函數讓聲音變得厚實。</p>
+        <ul>
+            <li><strong>失真量 (Amount)</strong> <span class="range">[範圍: 0.1 - 100.0]</span>：數值越大越接近方波。</li>
+        </ul>
     </div>
 
     <div class="block-box">
         <h2>8. 壓縮器與限制器 (Dynamics)</h2>
         <p>控制音量波動，防止爆音 (Clipping) 並增加聲音的紮實感。</p>
+        <ul>
+            <li><strong>閾值 (Threshold)</strong> <span class="range">[範圍: -80.0 到 0.0 dB]</span>：觸發壓縮的音量門檻。</li>
+            <li><strong>壓縮比 (Ratio)</strong> <span class="range">[範圍: 1.0 到 100.0]</span>：壓縮的強度。</li>
+            <li><strong>啟動/釋放 (Attack/Release)</strong> <span class="range">[範圍: 0.001 - 2.0 秒]</span>：反應速度。</li>
+            <li><strong>增益補償 (Makeup)</strong> <span class="range">[範圍: 0.0 到 24.0 dB]</span>：壓縮後的音量補償。</li>
+        </ul>
     </div>
 
     <div class="tip">

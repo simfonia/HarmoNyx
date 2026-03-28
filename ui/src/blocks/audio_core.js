@@ -70,7 +70,8 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_SOUND_SOURCES_HUE}",
-    "tooltip": "%{BKY_SB_SET_WAVE_TOOLTIP}"
+    "tooltip": "%{BKY_SB_SET_WAVE_TOOLTIP}",
+    "helpUrl": "sound_sources"
   },
   {
     "type": "sb_set_noise",
@@ -249,6 +250,7 @@ Blockly.Blocks['sb_set_adsr'] = {
       "nextStatement": null,
       "colour": "%{BKY_INSTRUMENT_CONTROL_HUE}",
       "tooltip": "%{BKY_SB_SET_ADSR_TOOLTIP}",
+      "helpUrl": "adsr",
       "extensions": ["audio_adsr_visual_sync"]
     });
   }

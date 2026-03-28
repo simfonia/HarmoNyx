@@ -26,8 +26,8 @@ const KEY_MAP = {
     '0': 75, // D#5
     'p': 76, // E5
     '[': 77, // F5
-    '=': 78, // F#5
-    ']': 79  // G5
+    ']': 79, // G5
+    '\\': 81 // A5
 };
 
 export const KeyboardController = {

@@ -393,6 +393,7 @@ window.SB_JavaLibs.GENERAL_HELPERS = `
     if (k == 'q') p = 60; else if (k == '2') p = 61; else if (k == 'w') p = 62; else if (k == '3') p = 63; else if (k == 'e') p = 64; else if (k == 'r') p = 65;
     else if (k == '5') p = 66; else if (k == 't') p = 67; else if (k == '6') p = 68; else if (k == 'y') p = 69; else if (k == '7') p = 70; else if (k == 'u') p = 71;
     else if (k == 'i') p = 72; else if (k == '9') p = 73; else if (k == 'o') p = 74; else if (k == '0') p = 75; else if (k == 'p') p = 76;
+    else if (k == '[') p = 77; else if (k == ']') p = 79; else if (k == '\\\\') p = 81;
     if (p != -1) { 
       int transP = p + pitchTranspose;
       if (!pcKeysHeld.containsKey(p)) { 
@@ -409,6 +410,7 @@ window.SB_JavaLibs.GENERAL_HELPERS = `
     if (k == 'q') p = 60; else if (k == '2') p = 61; else if (k == 'w') p = 62; else if (k == '3') p = 63; else if (k == 'e') p = 64; else if (k == 'r') p = 65;
     else if (k == '5') p = 66; else if (k == 't') p = 67; else if (k == '6') p = 68; else if (k == 'y') p = 69; else if (k == '7') p = 70; else if (k == 'u') p = 71;
     else if (k == 'i') p = 72; else if (k == '9') p = 73; else if (k == 'o') p = 74; else if (k == '0') p = 75; else if (k == 'p') p = 76;
+    else if (k == '[') p = 77; else if (k == ']') p = 79; else if (k == '\\\\') p = 81;
     if (p != -1) { 
       if (pcKeysHeld.containsKey(p)) { 
         String val = pcKeysHeld.get(p);

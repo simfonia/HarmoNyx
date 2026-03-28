@@ -7,7 +7,7 @@
         body { font-family: sans-serif; line-height: 1.6; padding: 20px; color: #333; }
         h1 { color: #E67E22; }
         h2 { color: #444; border-bottom: 2px solid #eee; padding-bottom: 5px; }
-        .type-box { margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; border-left: 5px solid #E67E22; }
+        .type-box { margin-bottom: 20px; padding: 15px; background: #FFF8F2; border-radius: 8px; border-left: 5px solid #E67E22; }
         code { background: #eee; padding: 2px 4px; border-radius: 4px; color: #d35400; font-weight: bold; }
         .example { background: #fffbe6; padding: 10px; border-left: 4px solid #ffc107; margin: 10px 0; font-family: monospace; white-space: pre; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
@@ -20,7 +20,18 @@
     <p>The "Play Melody List" block uses a simplified text format. It supports single notes, chord names, and powerful Tie features.</p>
 
     <div class="type-box">
-        <h2>1. Duration Codes</h2>
+        <h2>1. Note Names & Octaves</h2>
+        <p>A note consists of a <strong>Note Name (A-G)</strong>, <strong>Accidentals (#/b)</strong>, and an <strong>Octave (0-9)</strong>:</p>
+        <ul>
+            <li><strong>Format</strong>: e.g., <code>C4</code> (Middle C), <code>G#3</code> (G sharp), <code>Bb5</code> (B flat).</li>
+            <li><strong>Case Insensitive</strong>: <code>c4</code> is the same as <code>C4</code>.</li>
+            <li><strong>Octave Range</strong>: Standard MIDI range 0 to 9 (default is 4).</li>
+            <li><strong>Omitted Octave</strong>: Writing just <code>C</code> will use the current default octave.</li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>2. Duration Codes</h2>
         <table>
             <tr><th>Code</th><th>Name</th><th>Beats (4/4)</th></tr>
             <tr><td><code>W</code></td><td>Whole</td><td>4</td></tr>

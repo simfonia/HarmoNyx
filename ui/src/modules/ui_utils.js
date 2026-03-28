@@ -145,6 +145,7 @@ export const UIUtils = {
     initStagePanel: () => {
         const panel = document.getElementById('stage-panel');
         const toggle = document.getElementById('stage-toggle');
+        const resizer = document.getElementById('panel-resizer');
         const logContainer = document.getElementById('log-container');
         const clearBtn = document.getElementById('clear-log-btn');
 
@@ -153,6 +154,40 @@ export const UIUtils = {
                 panel.classList.toggle('collapsed');
                 setTimeout(() => window.dispatchEvent(new Event('resize')), 310);
             };
+        }
+
+        // --- 面板寬度拖曳調整邏輯 ---
+        if (resizer && panel) {
+            let isDragging = false;
+            let startX, startWidth;
+
+            resizer.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startWidth = panel.offsetWidth;
+                resizer.classList.add('is-dragging');
+                document.body.classList.add('resizing-panel');
+                e.preventDefault();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                // 計算新的寬度 (由右往左拉，所以是減法)
+                const dx = startX - e.clientX;
+                const newWidth = Math.max(200, Math.min(800, startWidth + dx));
+                
+                panel.style.width = `${newWidth}px`;
+                // 即時觸發 Resize 事件讓 Blockly 重新佈局
+                window.dispatchEvent(new Event('resize'));
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                resizer.classList.remove('is-dragging');
+                document.body.classList.remove('resizing-panel');
+            });
         }
 
         if (clearBtn) {

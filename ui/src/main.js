@@ -144,7 +144,7 @@ setTimeout(() => {
         callback: (scope) => {
             const block = scope.block;
             const url = (typeof block.helpUrl === 'function') ? block.helpUrl() : block.helpUrl;
-            const lang = 'zh-hant';
+            const lang = currentLang;
             const filename = `resources/docs/${url}_${lang}.html`;
             
             invoke('open_url', { url: filename }).catch(err => {
@@ -295,9 +295,21 @@ function updateLangCheck(lang) {
     if (selectedEl) selectedEl.innerHTML = `<img src="/icons/done_24dp_FE2F89.png" class="nyx-icon-neon" style="width: 16px;">`;
 }
 
-settingsMenu.innerHTML = `<div class="dropdown-item" id="restart-audio-item"><img src="/icons/rocket_launch_24dp_FE2F89.png" class="nyx-icon-neon"><span>重啟音訊</span></div><div class="dropdown-item" id="set-path-item"><img src="/icons/explore_24dp_FE2F89.png" class="nyx-icon-neon"><span>設定processing-java路徑</span></div><div class="dropdown-item has-submenu"><img src="/icons/language_24dp_FE2F89.png" class="nyx-icon-neon"><span>語言設定</span><span class="arrow">▶</span></div><div class="submenu"><div class="dropdown-item lang-item" data-lang="zh-hant"><span class="lang-check" style="width:20px;"></span><span>正體中文</span></div><div class="dropdown-item lang-item" data-lang="en"><span class="lang-check" style="width:20px;"></span><span>English</span></div></div>`;
+settingsMenu.innerHTML = `
+    <div class="dropdown-item" id="restart-audio-item"><img src="/icons/rocket_launch_24dp_FE2F89.png" class="nyx-icon-neon"><span>${Blockly.Msg['HARMONYX_RESTART_AUDIO'] || '重啟音訊'}</span></div>
+    <div class="dropdown-item" id="set-path-item"><img src="/icons/explore_24dp_FE2F89.png" class="nyx-icon-neon"><span>${Blockly.Msg['HARMONYX_SET_PATH'] || '設定路徑'}</span></div>
+    <div class="dropdown-item" id="open-samples-item"><img src="/icons/load_project_24dp_FE2F89.png" class="nyx-icon-neon"><span>${Blockly.Msg['HARMONYX_OPEN_SAMPLES'] || '開啟聲音取樣檔資料夾'}</span></div>
+    <div class="dropdown-item has-submenu"><img src="/icons/language_24dp_FE2F89.png" class="nyx-icon-neon"><span>${Blockly.Msg['HARMONYX_LANG_SETTING'] || '語言設定'}</span><span class="arrow">▶</span></div>
+    <div class="submenu">
+        <div class="dropdown-item lang-item" data-lang="zh-hant"><span class="lang-check" style="width:20px;"></span><span>正體中文</span></div>
+        <div class="dropdown-item lang-item" data-lang="en"><span class="lang-check" style="width:20px;"></span><span>English</span></div>
+    </div>
+`;
 
 document.body.addEventListener('click', async (e) => {
+    if (e.target.closest('#open-samples-item')) {
+        await invoke('open_samples_dir');
+    }
     if (e.target.closest('#set-path-item')) {
         const { open } = window.__TAURI__.dialog;
         const selectedPath = await open({ multiple: false, directory: false, filters: [{ name: 'Processing Java', extensions: ['exe', ''] }] });
@@ -407,25 +419,82 @@ function debouncedOrphanUpdate() {
     }, 100);
 }
 
-function updateVisualHelp(block) {
+async function updateVisualHelp(block) {
     const placeholder = document.getElementById('help-placeholder');
     const content = document.getElementById('block-help-content');
     const titleEl = document.getElementById('help-title');
     const descEl = document.getElementById('help-desc');
     const previewEl = document.getElementById('help-preview');
     if (!placeholder || !content) return;
-    placeholder.style.display = 'none'; content.style.display = 'block';
-    let title = block.type;
-    for (const key in Blockly.Msg) { if (block.type.toUpperCase() === key) { title = Blockly.Msg[key]; break; } }
-    if (block.type === 'variables_get' || block.type === 'variables_set') title = `${Blockly.Msg[block.type.toUpperCase()] || block.type} (${block.getField('VAR').getText()})`;
-    titleEl.textContent = title;
+
+    placeholder.style.display = 'none';
+    content.style.display = 'block';
+
+    // 1. 標題：僅顯示技術 ID
+    titleEl.style.display = 'flex';
+    titleEl.style.alignItems = 'center';
+    titleEl.style.justifyContent = 'space-between';
+    titleEl.style.fontFamily = "'Fira Code', monospace";
+    titleEl.style.fontSize = '13px';
+    titleEl.innerHTML = `<span style="color: var(--nyx-purple-glow); opacity: 0.8;">ID: &lt;${block.type}&gt;</span>`;
+
+    // 2. 處理 Help URL 與內嵌說明
+    const url = (typeof block.helpUrl === 'function') ? block.helpUrl() : block.helpUrl;
+    previewEl.innerHTML = ''; 
+    previewEl.style.padding = '0';
+    previewEl.style.overflow = 'hidden';
+
+    if (url && url !== '') {
+        const isExternal = url.startsWith('http');
+
+        // 右側保留一個外部開啟按鈕
+        const linkIcon = document.createElement('img');
+        linkIcon.src = '/icons/explore_24dp_FE2F89.png';
+        linkIcon.className = 'nyx-icon-neon';
+        linkIcon.style.width = '16px';
+        linkIcon.style.cursor = 'pointer';
+        linkIcon.title = '開啟外部說明';
+        linkIcon.onclick = () => {
+            const targetUrl = isExternal ? url : `${url}_${currentLang}.html`;
+            invoke('open_url', { url: targetUrl }).catch(() => {
+                invoke('open_url', { url: targetUrl });
+            });
+        };
+        titleEl.appendChild(linkIcon);
+
+        // 內嵌說明文件
+        if (!isExternal) {
+            try {
+                const docFilename = `${url}_${currentLang}.html`;
+                const docContent = await invoke('get_doc_content', { filename: docFilename });
+
+                const iframe = document.createElement('iframe');
+                iframe.style.width = '100%';
+                iframe.style.height = '280px';
+                iframe.style.border = 'none';
+                iframe.style.backgroundColor = '#fff';
+                iframe.style.borderRadius = '4px';
+                iframe.srcdoc = docContent;
+
+                previewEl.appendChild(iframe);
+                previewEl.style.display = 'block';
+                previewEl.style.marginBottom = '15px';
+            } catch (err) {
+                console.warn('Failed to load internal doc content:', err);
+                previewEl.style.display = 'none';
+            }
+        } else {
+            // 外部連結：目前不支援在 iframe 內嵌 (因 CSP)，僅提供按鈕與 Tooltip
+            previewEl.style.display = 'none';
+        }
+    } else {        previewEl.style.display = 'none';
+    }
+
+    // 3. 處理 Tooltip (作為底部的快速摘要)
     let tooltip = block.getTooltip();
     if (typeof tooltip === 'function') tooltip = tooltip();
-    descEl.innerHTML = tooltip ? tooltip.replace(/\n/g, '<br>') : '無說明文件';
-    previewEl.innerHTML = '';
-    try {
-        const typeLabel = document.createElement('span');
-        typeLabel.style.color = '#aaa'; typeLabel.style.fontFamily = 'monospace'; typeLabel.textContent = `<${block.type}>`;
-        previewEl.appendChild(typeLabel);
-    } catch (e) { console.error('Preview render error:', e); }
+    descEl.style.fontSize = '13px';
+    descEl.style.lineHeight = '1.6';
+    descEl.style.color = 'var(--nyx-text)';
+    descEl.innerHTML = tooltip ? tooltip.replace(/\n/g, '<br>') : '<i>(此積木暫無詳細說明)</i>';
 }

@@ -52,6 +52,8 @@ Blockly.defineBlocksWithJsonArray([
     "previousStatement": null,
     "nextStatement": null,
     "colour": "%{BKY_INSTRUMENT_CONTROL_HUE}",
+    "tooltip": "%{BKY_SB_SET_ADSR_TOOLTIP}",
+    "helpUrl": "adsr",
     "extensions": ["audio_adsr_visual_sync"]
   },
   {

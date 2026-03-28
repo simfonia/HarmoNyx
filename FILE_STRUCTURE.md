@@ -48,3 +48,5 @@ C:\Workspace\HarmoNyx\
 
 ---
 *最後更新日期：2026-03-22 (專案結構重整與自動化打包)*
+
+- [2026-03-26] Updated documentation (sound_sources_*) and UI localization (main.js, en.js, zh-hant.js).

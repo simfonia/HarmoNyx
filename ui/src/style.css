@@ -95,8 +95,68 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
 .blockly-minimap.collapsed { display: none !important; }
 
 /* 右側面板 */
-#stage-panel { width: 350px; background-color: var(--nyx-bg-dark); border-left: 1px solid var(--nyx-border); display: flex; flex-direction: column; position: relative; transition: width 0.3s; z-index: 100; }
-#stage-panel.collapsed { width: 0; border-left: none; }
+#stage-panel { 
+    width: 350px; 
+    min-width: 0;
+    background-color: var(--nyx-bg-dark); 
+    border-left: 1px solid var(--nyx-border); 
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    z-index: 100; 
+}
+/* 收合狀態：寬度歸零，但允許按鈕溢出顯示 */
+#stage-panel.collapsed { 
+    width: 0 !important; 
+    border-left: none; 
+}
+/* 收合時隱藏所有內部內容，除了切換按鈕 */
+#stage-panel.collapsed > *:not(#stage-toggle) {
+    display: none !important;
+}
+
+
+/* 調整寬度的 Handle */
+#panel-resizer {
+    width: 6px;
+    height: 100%;
+    cursor: col-resize;
+    background-color: transparent;
+    transition: background-color 0.2s;
+    z-index: 2600; /* 高於 header */
+    margin-left: -3px;
+    position: relative;
+}
+#panel-resizer:hover, #panel-resizer.is-dragging {
+    background-color: var(--nyx-purple);
+    box-shadow: 0 0 10px var(--nyx-purple-glow);
+}
+
+/* 拖曳時的透明全屏遮罩 */
+#resizer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: transparent;
+    cursor: col-resize;
+    z-index: 2550; /* 僅次於 resizer */
+    display: none;
+}
+body.resizing-panel #resizer-overlay {
+    display: block;
+}
+body.resizing-panel {
+    user-select: none !important;
+}
+
+
+/* 修正 HTML 結構後的選擇器 */
+#blocklyDiv { flex: 1; height: 100%; background-color: var(--nyx-bg-deep); position: relative; min-width: 0; }
+#stage-panel.collapsed { width: 0 !important; border-left: none; }
+
+
 .section-header { height: 35px; background-color: var(--nyx-bg-panel); display: flex; align-items: center; padding: 0 12px; gap: 8px; font-size: 12px; color: var(--nyx-text-dim); }
 #log-container { flex: 1; background-color: #050505; padding: 8px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 12px; }
 .log-line { margin-bottom: 4px; border-left: 2px solid transparent; padding-left: 8px; }

@@ -104,7 +104,7 @@ Blockly.defineBlocksWithJsonArray([
     "nextStatement": null,
     "colour": "%{BKY_PERFORMANCE_HUE}",
     "tooltip": "%{BKY_AUDIO_DEFINE_CHORD_TOOLTIP}",
-    "helpUrl": "melody"
+    "helpUrl": ""
   },
   {
     "type": "sb_audio_is_playing",

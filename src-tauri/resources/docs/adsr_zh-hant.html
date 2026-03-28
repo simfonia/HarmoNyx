@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>ADSR 包絡線指南</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; color: #333; }
+        h1 { color: #FF5722; }
+        h2 { color: #444; border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .type-box { margin-bottom: 20px; padding: 15px; background: #FFF7F5; border-radius: 8px; border-left: 5px solid #FF5722; }
+        code { background: #eee; padding: 2px 4px; border-radius: 4px; color: #D35400; font-weight: bold; }
+        .example { background: #fffbe6; padding: 10px; border-left: 4px solid #ffc107; margin: 10px 0; font-family: monospace; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        .param { font-weight: bold; color: #E67E22; }
+    </style>
+</head>
+<body>
+    <h1>ADSR 包絡線 (Envelope)</h1>
+    <p>ADSR 是控制聲音隨時間變化的模型，決定了聲音從「開始」到「結束」的音量（或過濾器）變化曲線。</p>
+
+    <div class="type-box">
+        <h2>1. 參數解析</h2>
+        <table>
+            <tr><th>參數</th><th>名稱</th><th>說明</th></tr>
+            <tr><td><span class="param">A</span> (Attack)</td><td>起音</td><td>從按鍵到達到最大音量的時間。</td></tr>
+            <tr><td><span class="param">D</span> (Decay)</td><td>衰減</td><td>從最大音量降至「維持音量」的時間。</td></tr>
+            <tr><td><span class="param">S</span> (Sustain)</td><td>維持</td><td>按住按鍵時保持的音量大小 (0.0 - 1.0)。</td></tr>
+            <tr><td><span class="param">R</span> (Release)</td><td>釋放</td><td>放開按鍵後聲音消失的時間。</td></tr>
+        </table>
+    </div>
+
+    <div class="type-box">
+        <h2>2. 常見音色建議</h2>
+        <ul>
+            <li><strong>鋼琴 (Piano)</strong>：起音極快，維持音量中等，釋放中等。
+                <div class="example">A: 0.01, D: 0.3, S: 0.4, R: 1.0</div>
+            </li>
+            <li><strong>提琴 (Strings)</strong>：起音慢（漸強），維持音量高，釋放慢（餘響長）。
+                <div class="example">A: 0.5, D: 1.0, S: 0.8, R: 1.5</div>
+            </li>
+            <li><strong>鼓 (Percussion)</strong>：起音極快，衰減快，維持為 0（不按住發聲）。
+                <div class="example">A: 0.005, D: 0.1, S: 0.0, R: 0.1</div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="type-box">
+        <h2>3. 提示</h2>
+        <p>在 HarmoNyx 中，你可以透過積木上的<strong>視覺圖表</strong>直接觀察這些參數的形狀。黃色光點會隨著聲音演奏的進度而跳動。</p>
+    </div>
+</body>
+</html>

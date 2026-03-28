@@ -33,8 +33,8 @@ window.SB_Utils.initPolyfills = function() {
  */
 window.SB_Utils.KEYS = {
     SYSTEM: ['up', 'down', 'left', 'right', '+', '-', 'backspace'],
-    PIANO: ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u', 'i', '9', 'o', '0', 'p'],
-    ALL: 'abcdefghijklmnopqrstuvwxyz1234567890[]\;,./'.split('')
+    PIANO: ['q', '2', 'w', '3', 'e', 'r', '5', 't', '6', 'y', '7', 'u', 'i', '9', 'o', '0', 'p', '[', ']', '\\'],
+    ALL: 'abcdefghijklmnopqrstuvwxyz1234567890[]\\\\;,./'.split('')
 };
 
 window.SB_Utils.getAvailableKeys = function(currentBlock) {
