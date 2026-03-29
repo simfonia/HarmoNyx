@@ -7,46 +7,84 @@ export const UIUtils = {
      * 初始化積木搜尋功能
      */
     initSearch: (workspace) => {
-        const BlockSearcher = {
-            _cache: new Map(),
-            _searchTimeout: null,
-            buildIndex: function() {
-                this._cache.clear();
-                const types = Object.keys(Blockly.Blocks);
-                types.forEach(type => {
-                    let blob = type.toLowerCase();
-                    const def = Blockly.Blocks[type];
-                    if (def) { for(let i=0; i<10; i++) { const m = def['message'+i]; if(typeof m === 'string') blob += ' ' + m.replace(/%\d+/g,'').toLowerCase(); } }
-                    this._cache.set(type, blob);
-                });
-            },
-            inject: function(ws) {
-                const blocklyDiv = document.getElementById('blocklyDiv');
-                const toolboxDiv = document.querySelector('.blocklyToolboxDiv');
-                if (!blocklyDiv || !toolboxDiv || document.getElementById('block-search-container')) return;
-                const searchDiv = document.createElement('div');
-                searchDiv.id = 'block-search-container';
-                searchDiv.innerHTML = `<input type="text" id="block-search" placeholder="搜尋積木..." autocomplete="off"><img src="/icons/cancel_24dp_FE2F89.png" id="search-clear-btn" class="nyx-icon-neon" style="display:none">`;
-                blocklyDiv.appendChild(searchDiv);
-                const searchInput = document.getElementById('block-search');
-                const updateWidth = () => { const rect = toolboxDiv.getBoundingClientRect(); if (rect.width > 0) searchDiv.style.width = rect.width + 'px'; };
-                new ResizeObserver(updateWidth).observe(toolboxDiv);
-                searchInput.oninput = (e) => {
-                    clearTimeout(this._searchTimeout);
-                    this._searchTimeout = setTimeout(() => {
-                        const query = e.target.value.toLowerCase().trim();
-                        const toolbox = ws.getToolbox();
-                        const flyout = toolbox ? toolbox.getFlyout() : null;
-                        if (!flyout) return;
-                        if (!query) { flyout.hide(); return; }
-                        const matched = []; this._cache.forEach((b, t) => { if(b.includes(query)) matched.push(t); });
-                        const xmlList = matched.slice(0, 20).map(t => { const x = Blockly.utils.xml.createElement('block'); x.setAttribute('type', t); return x; });
-                        flyout.show(xmlList);
-                    }, 200);
-                };
-            }
+        if (!window.BlockSearcher) {
+            window.BlockSearcher = {
+                _cache: new Map(),
+                _searchTimeout: null,
+                buildIndex: function() {
+                    this._cache.clear();
+                    const types = Object.keys(Blockly.Blocks);
+                    types.forEach(type => {
+                        let blob = type.toLowerCase();
+                        const def = Blockly.Blocks[type];
+                        if (def) { for(let i=0; i<10; i++) { const m = def['message'+i]; if(typeof m === 'string') blob += ' ' + m.replace(/%\d+/g,'').toLowerCase(); } }
+                        this._cache.set(type, blob);
+                    });
+                }
+            };
+        }
+        
+        const BlockSearcher = window.BlockSearcher;
+        const doInject = () => {
+            if (BlockSearcher._cache.size === 0) BlockSearcher.buildIndex();
+            
+            const wrapper = workspace.getInjectionDiv().parentNode;
+            const toolboxDiv = wrapper.querySelector('.blocklyToolboxDiv');
+            if (!wrapper || !toolboxDiv || wrapper.querySelector('.block-search-container')) return;
+            
+            const searchDiv = document.createElement('div');
+            searchDiv.className = 'block-search-container';
+            searchDiv.innerHTML = `<input type="text" class="block-search" placeholder="搜尋積木..." autocomplete="off"><img src="/icons/cancel_24dp_FE2F89.png" class="search-clear-btn nyx-icon-neon" style="display:none">`;
+            wrapper.appendChild(searchDiv);
+            
+            const searchInput = searchDiv.querySelector('.block-search');
+            const clearBtn = searchDiv.querySelector('.search-clear-btn');
+            
+            const updateWidth = () => { 
+                const rect = toolboxDiv.getBoundingClientRect(); 
+                if (rect.width > 0) searchDiv.style.width = rect.width + 'px'; 
+            };
+            new ResizeObserver(updateWidth).observe(toolboxDiv);
+
+            clearBtn.onclick = () => {
+                searchInput.value = '';
+                clearBtn.style.display = 'none';
+                const toolbox = workspace.getToolbox();
+                const flyout = toolbox ? toolbox.getFlyout() : null;
+                if (flyout) flyout.hide();
+                searchInput.focus();
+            };
+
+            searchInput.onkeydown = (e) => {
+                if (e.key === 'Escape') {
+                    searchInput.value = '';
+                    clearBtn.style.display = 'none';
+                    const toolbox = workspace.getToolbox();
+                    const flyout = toolbox ? toolbox.getFlyout() : null;
+                    if (flyout) flyout.hide();
+                    searchInput.blur();
+                }
+            };
+
+            searchInput.oninput = (e) => {
+
+                const query = e.target.value.toLowerCase().trim();
+                clearBtn.style.display = query ? 'block' : 'none';
+                clearTimeout(BlockSearcher._searchTimeout);
+                BlockSearcher._searchTimeout = setTimeout(() => {
+                    const toolbox = workspace.getToolbox();
+                    const flyout = toolbox ? toolbox.getFlyout() : null;
+                    if (!flyout) return;
+                    if (!query) { flyout.hide(); return; }
+                    const matched = []; BlockSearcher._cache.forEach((b, t) => { if(b.includes(query)) matched.push(t); });
+                    const xmlList = matched.slice(0, 20).map(t => { const x = Blockly.utils.xml.createElement('block'); x.setAttribute('type', t); return x; });
+                    flyout.show(xmlList);
+                }, 200);
+            };
         };
-        setTimeout(() => { BlockSearcher.buildIndex(); BlockSearcher.inject(workspace); }, 1000);
+
+        if (document.readyState === 'complete') setTimeout(doInject, 500);
+        else window.addEventListener('load', () => setTimeout(doInject, 500));
     },
 
     /**
@@ -55,8 +93,14 @@ export const UIUtils = {
     initStagePanel: () => {
         const panel = document.getElementById('stage-panel');
         const toggle = document.getElementById('stage-toggle');
+        const arrow = toggle.querySelector('.arrow');
         const logContainer = document.getElementById('log-container');
-        if (toggle) toggle.onclick = () => { panel.classList.toggle('collapsed'); setTimeout(() => window.dispatchEvent(new Event('resize')), 310); };
+        
+        if (toggle) toggle.onclick = () => { 
+            const isCollapsed = panel.classList.toggle('collapsed');
+            if (arrow) arrow.textContent = isCollapsed ? '◀' : '▶';
+            setTimeout(() => window.dispatchEvent(new Event('resize')), 310); 
+        };
         const tabs = document.querySelectorAll('.tab-btn');
         const panes = document.querySelectorAll('.tab-pane');
         tabs.forEach(tab => {

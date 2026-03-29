@@ -16,42 +16,13 @@
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: var(--nyx-bg-deep); }
 body { font-family: 'Inter', sans-serif; color: var(--nyx-text); }
 #app { display: flex; flex-direction: column; width: 100%; height: 100%; position: absolute; }
-
-/* Header & Toolbar */
-header { height: 50px; background-color: var(--nyx-header-bg); display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid var(--nyx-border); flex-shrink: 0; z-index: 2500; box-shadow: 0 2px 10px rgba(0,0,0,0.5); position: relative; }
-.header-left { display: flex; align-items: center; gap: 10px; width: 180px; }
-.app-logo { 
-    width: 24px; 
-    height: 24px; 
-    object-fit: contain;
-    background-color: transparent !important;
-    filter: drop-shadow(0 0 5px var(--nyx-purple)); 
-}
-h1 { font-size: 16px; margin: 0; color: var(--nyx-purple); font-weight: 600; letter-spacing: 1px; }
-
-.file-status-container { display: flex; align-items: center; background-color: rgba(0, 0, 0, 0.3); padding: 4px 12px; border-radius: 20px; margin: 0 15px; border: 1px solid var(--nyx-border); font-size: 13px; color: var(--nyx-text-dim); }
-.file-dirty-dot { width: 8px; height: 8px; background-color: #7f8c8d; border-radius: 50%; margin-right: 8px; }
-.is-dirty .file-dirty-dot { background-color: var(--nyx-purple-glow); box-shadow: 0 0 5px var(--nyx-purple-glow); }
-
-.toolbar { display: flex; align-items: center; gap: 8px; }
-.icon-btn { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 4px; transition: all 0.2s; }
-.icon-btn img, .mini-btn img { width: 22px; height: 22px; opacity: 0.8; transition: all 0.2s; }
-
-.icon-btn:hover { background-color: rgba(255, 255, 255, 0.1); transform: translateY(-2px); }
-.icon-btn:active { transform: translateY(0); }
-.icon-btn:hover img { opacity: 1; filter: brightness(1.3) drop-shadow(0 0 5px var(--nyx-purple-glow)); }
-
-.nyx-icon-purple { filter: invert(47%) sepia(34%) saturate(1516%) hue-rotate(243deg) brightness(88%) contrast(85%); }
-.nyx-icon-green { filter: invert(61%) sepia(96%) saturate(394%) hue-rotate(95deg) brightness(97%) contrast(88%); }
-.nyx-icon-red { filter: invert(36%) sepia(87%) saturate(2251%) hue-rotate(345deg) brightness(91%) contrast(101%); }
-.nyx-icon-blue { filter: invert(47%) sepia(91%) saturate(1067%) hue-rotate(182deg) brightness(96%) contrast(92%); }
-.nyx-icon-neon { filter: invert(41%) sepia(91%) saturate(4258%) hue-rotate(318deg) brightness(101%) contrast(101%); }
-
 main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
-#blocklyDiv { flex: 1; height: 100%; background-color: var(--nyx-bg-deep); position: relative; }
+#workspace-container { flex: 1; height: 100%; background-color: var(--nyx-bg-deep); position: relative; min-width: 0; }
+.blockly-wrapper { width: 100%; height: 100%; display: none; position: relative; } /* 確保搜尋框相對此容器定位 */
+.blockly-wrapper.active { display: block; }
 
-/* 搜尋框：懸浮在工具箱頂部 */
-#block-search-container {
+/* 搜尋框：懸浮在各分頁工具箱頂部 */
+.block-search-container {
     position: absolute;
     top: 0;
     left: 0;
@@ -60,28 +31,47 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
     padding: 10px;
     background-color: var(--nyx-header-bg);
     border-bottom: 1px solid var(--nyx-border);
-    /* 移除搜尋框的 border-right，讓它不要擋住工具箱主體的邊界線 */
     border-right: none !important;
     border-top: none !important;
     border-left: none !important;
-    border-bottom: none !important;
     z-index: 1000;
     box-sizing: border-box;
 }
 
-#block-search { width: 100%; background-color: var(--nyx-bg-deep); border: 1px solid var(--nyx-border); color: var(--nyx-text); padding: 6px 25px 6px 10px; border-radius: 4px; font-size: 13px; outline: none; box-sizing: border-box; }
-#search-clear-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; cursor: pointer; display: none; }
+.block-search { 
+    width: 100%; 
+    background-color: var(--nyx-bg-deep); 
+    border: 1px solid var(--nyx-border); 
+    color: var(--nyx-text); 
+    padding: 6px 25px 6px 10px; 
+    border-radius: 4px; 
+    font-size: 13px; 
+    outline: none; 
+    box-sizing: border-box; 
+}
+
+.search-clear-btn { 
+    position: absolute; 
+    right: 15px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    width: 14px; 
+    height: 14px; 
+    cursor: pointer; 
+    display: none; 
+    z-index: 1001; 
+}
+
 
 /* 工具箱與 Flyout 修正 */
 .blocklyToolboxDiv { 
     padding-top: 45px !important; 
     background-color: var(--nyx-header-bg) !important; 
     z-index: 50 !important; 
-    border-right: 1px solid var(--nyx-border) !important; /* 這一條線是工具箱的主邊界線，應保持完整 */
+    border-right: 1px solid var(--nyx-border) !important;
     border-top: none !important; 
 }
 
-/* 分隔線 */
 .blocklyTreeSeparator { 
     border-bottom: 1px solid var(--nyx-border) !important; 
     margin: 5px 0 !important;
@@ -100,16 +90,13 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
     position: relative; 
     z-index: 100; 
 }
-/* 收合狀態：寬度歸零，但允許按鈕溢出顯示 */
 #stage-panel.collapsed { 
     width: 0 !important; 
     border-left: none; 
 }
-/* 收合時隱藏所有內部內容，除了切換按鈕 */
 #stage-panel.collapsed > *:not(#stage-toggle) {
     display: none !important;
 }
-
 
 /* 調整寬度的 Handle */
 #panel-resizer {
@@ -118,7 +105,7 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
     cursor: col-resize;
     background-color: transparent;
     transition: background-color 0.2s;
-    z-index: 2600; /* 高於 header */
+    z-index: 2600; 
     margin-left: -3px;
     position: relative;
 }
@@ -127,7 +114,6 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
     box-shadow: 0 0 10px var(--nyx-purple-glow);
 }
 
-/* 拖曳時的透明全屏遮罩 */
 #resizer-overlay {
     position: fixed;
     top: 0;
@@ -136,7 +122,7 @@ main { flex-grow: 1; display: flex; overflow: hidden; position: relative; }
     height: 100vh;
     background: transparent;
     cursor: col-resize;
-    z-index: 2550; /* 僅次於 resizer */
+    z-index: 2550; 
     display: none;
 }
 body.resizing-panel #resizer-overlay {
@@ -146,24 +132,12 @@ body.resizing-panel {
     user-select: none !important;
 }
 
-
-/* 修正 HTML 結構後的選擇器 */
 #blocklyDiv { flex: 1; height: 100%; background-color: var(--nyx-bg-deep); position: relative; min-width: 0; }
-#stage-panel.collapsed { width: 0 !important; border-left: none; }
-
-
 .section-header { height: 35px; background-color: var(--nyx-bg-panel); display: flex; align-items: center; padding: 0 12px; gap: 8px; font-size: 12px; color: var(--nyx-text-dim); }
 #log-container { flex: 1; background-color: #050505; padding: 8px; overflow-y: auto; font-family: 'Fira Code', monospace; font-size: 12px; }
 .log-line { margin-bottom: 4px; border-left: 2px solid transparent; padding-left: 8px; }
 .log-info { color: #75FB4C; border-left-color: #2ecc71; }
 .log-error { color: #EA3323; border-left-color: #e74c3c; }
-
-.dropdown-menu { position: absolute; background-color: var(--nyx-bg-panel); border: 1px solid var(--nyx-border); border-radius: 4px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); z-index: 3000 !important; min-width: 220px; max-height: 80vh; overflow-y: auto; padding: 5px 0; display: none; flex-direction: column; }
-.dropdown-menu.show { display: flex; }
-.dropdown-item { padding: 10px 15px; font-size: 13px; color: var(--nyx-text-dim); cursor: pointer; display: flex; align-items: center; gap: 12px; }
-.dropdown-item:hover { background-color: rgba(255, 255, 255, 0.05); color: var(--nyx-text); }
-.submenu { background-color: #111115; display: none; flex-direction: column; padding-left: 10px; }
-.has-submenu:hover + .submenu, .submenu:hover { display: flex; }
 
 #stage-toggle { position: absolute; left: -20px; top: 50%; transform: translateY(-50%); width: 20px; height: 60px; background-color: var(--nyx-bg-panel); border: 1px solid var(--nyx-border); border-right: none; border-radius: 8px 0 0 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 100; }
 .blocklyTreeRow.blocklyTreeSelected { background-color: var(--nyx-purple) !important; }
@@ -176,23 +150,14 @@ body.resizing-panel {
 .blocklyHtmlInput { color: #1a1a1a !important; background-color: #ffffff !important; }
 
 /* --- Smart Panel Styles --- */
-
-/* Parent container for sections */
-#stage-panel {
-    display: flex;
-    flex-direction: column;
-}
-
-/* Tabs Section (Top, expands) */
 #smart-tabs-section {
     flex: 1;
     display: flex;
     flex-direction: column;
-    min-height: 0; /* Important for scrolling */
+    min-height: 0; 
     overflow: hidden;
 }
 
-/* Log Section (Bottom, fixed height for now) */
 #log-section {
     height: 180px;
     display: flex;
@@ -201,7 +166,6 @@ body.resizing-panel {
     flex-shrink: 0;
 }
 
-/* Common Section Content Wrapper */
 .section-content {
     flex: 1;
     display: flex;
@@ -211,7 +175,6 @@ body.resizing-panel {
     background-color: #050505;
 }
 
-/* Tabs Header */
 .smart-tabs-header {
     display: flex;
     background-color: var(--nyx-bg-panel);
@@ -256,7 +219,6 @@ body.resizing-panel {
     filter: brightness(1.2);
 }
 
-/* Tabs Body */
 .smart-tabs-body {
     flex: 1;
     position: relative;
@@ -281,7 +243,6 @@ body.resizing-panel {
     display: block;
 }
 
-/* Visual Help Styles */
 .help-placeholder {
     height: 100%;
     display: flex;
@@ -325,7 +286,6 @@ body.resizing-panel {
     justify-content: center;
 }
 
-/* Live Code Styles */
 #live-code pre {
     margin: 0;
     padding: 10px;
@@ -337,49 +297,27 @@ body.resizing-panel {
     word-break: break-all;
 }
 
-/* Scrollbars */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: #1e1e24; }
 ::-webkit-scrollbar-thumb { background: #3d3d45; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-
-/* 更新 Logo 樣式：加入紫色光暈效果 */
-.nyx-logo-icon {
-    /* 提亮並增加對比，加上霓虹光暈 */
-    filter: brightness(1.8) contrast(1.2) drop-shadow(0 0 12px #000000);
-    width: 64px;
-    height: 64px;
-    margin-right: 2px;
-    transition: all 0.3s ease;
-}
-
-.nyx-logo-icon:hover {
-    filter: brightness(2.0) contrast(1.3) drop-shadow(0 0 24px #FE2F89);
-}
-
-
-/* --- 孤兒積木 (Disabled) 樣式覆寫 --- */
 .blocklyDisabled {
-    opacity: 0.8 !important; /* 保持較高不透明度，讓內容可讀 */
+    opacity: 0.8 !important; 
     fill-opacity: 0.5 !important;
 }
 
-/* 紅色邊框警示效果 */
 .blocklyDisabled > .blocklyPath {
-    stroke: #eee7e7 !important; /* 邊框 */
+    stroke: #eee7e7 !important; 
     stroke-width: 1px !important;
     stroke-opacity: 0.5 !important;
-    fill-opacity: 0.1 !important; /* 讓填充稍微透明一點點 */
+    fill-opacity: 0.1 !important; 
 }
 
-/* 讓內部文字稍微變暗，但保持可讀 */
 .blocklyDisabled .blocklyText {
     fill: #ddd !important;
 }
 
-/* 針對孤兒積木的圖示也加上紅色濾鏡 */
 .blocklyDisabled .blocklyIconGroup {
     filter: drop-shadow(0 0 2px #ff0000);
 }
-

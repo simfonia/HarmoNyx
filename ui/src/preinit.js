@@ -58,6 +58,31 @@ window.SB_Utils.getChordDropdown = function () {
 };
 
 /**
+ * --- Generator Helpers ---
+ */
+window.SB_Utils.getInstrumentJavaName = function(name) {
+    const currentLabel = Blockly.Msg['SB_CURRENT_INSTRUMENT_OPTION'] || '當前選用的樂器';
+    const promptLabel = Blockly.Msg['SB_SELECT_INSTRUMENT_PROMPT'] || '(請選擇樂器)';
+    if (!name || name === currentLabel || name === promptLabel) {
+        return 'currentInstrument';
+    }
+    return '"' + name + '"';
+};
+
+/**
+ * 輔助函數：計算相對索引 (0-based)
+ * @param {string} atCode 代碼字串
+ * @returns {string} 轉換後的代碼字串
+ */
+window.SB_Utils.getRelativeIndex = function(atCode) {
+    if (!atCode) atCode = '1';
+    if (!isNaN(parseFloat(atCode)) && isFinite(atCode)) {
+        return String(Number(atCode) - 1);
+    }
+    return atCode + ' - 1';
+};
+
+/**
  * --- Visual Color Helpers ---
  */
 window.SB_Utils.hexToJavaColor = function (hex) {

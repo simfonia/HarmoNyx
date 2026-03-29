@@ -57,3 +57,11 @@
     - **後端指令**: 新增 `get_doc_content` 與 `get_docs_path` 指令，解決 Vite 無法讀取外部 Resources 的問題。
     - **穩定性**: 捨棄了 Windows Junction 方案，現在開發環境不需要額外 OS 設置。
 - **Melody 文件更新**: 新增「音名與八度表示 (Note Names & Octaves)」章節，並完成中英文同步。
+
+## 2026-03-27 (Visual Minimap 成功與 MDI 預備)
+- **Minimap 革命**: 徹底廢除邏輯鏡像插件，改為自研 **HarmoNyx Visual Minimap (v10)**。
+    - 解決了積木變連時 ssociated block is undefined 的宿疾。
+    - 實作「框中心導航」：點擊地圖處會精確成為視窗中心。
+- **MDI 實作初探**: 嘗試引入多文件分頁，但發現 display: none 會導致積木拼接失敗。
+- **Git 回退狀態**: 已回退至 MDI 前的穩定點，但保留了新版 Minimap 與修正後的 CustomFieldColour 邏輯於記憶中。
+- **明日計畫**: 依據 plans/mdi-refactor-v2.md 採用「離屏佈局」技術重新實作 MDI。

@@ -112,3 +112,12 @@ Minimap 預設不會監聽單純的點擊事件。我們在 `ui_utils.js` 的 `i
 2.  **安全銷毀**: 在 updateShape_ 中移除 Input 前，必須先手動斷開 (unplug) 並銷毀 (dispose) 連接的積木，確保 ID 從索引中徹底移除。
 3.  **非同步變連 (Async Mutation)**: 使用 setTimeout(..., 0) 將結構變更推遲到事件循環之後。
 4.  **防禦性產生器**: 產生器必須使用 lock.getInput() 檢查插槽是否存在，若不存在則回傳預設值，以容忍非同步更新的時間差。
+
+## 視覺型小地圖導航邏輯 (Visual Minimap v10)
+- **核心公式**: workspace.scroll(-(wsX - viewWidth / 2), -(wsY - viewHeight / 2))。
+- **穩定性**: 僅在 BLOCK_MOVE 結束或增減積木時重算 Scale，捲動視窗時比例保持固定，消除閃爍。
+
+## MDI 積木拼接失效分析
+- **現象**: 新分頁建立後積木散亂、影子積木 (BPM) 脫離。
+- **主因**: Blockly.inject 發生在隱藏容器中，Connection 資料庫無法測量寬高，導致座標避讓 (Bump) 機制誤觸。
+- **對策**: v2 計畫改用 isibility: hidden 或 	ranslateX(-9999px) 保持 Layout 活性。

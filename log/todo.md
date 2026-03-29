@@ -33,4 +33,10 @@
 - [x] **舞台參數同步**: 修復了 isual_stage_setup ADSR 滑桿失效的問題。
 - [x] **移調卡音修復**: 解決了 Transpose 操作導致的卡音問題。
 - [x] **孤兒積木樣式**: 實作了紅色邊框警示效果。
+- [x] **Toolbar 模組化**: 將工具列邏輯與樣式從 `main.js` 抽離至 `toolbar_manager.js` 與 `toolbar.css`。
+- [x] **MDI 多分頁系統**:
+    - 實作了獨立的工作區（Independent Workspaces），支援各分頁獨立的 Undo/Redo。
+    - 實作了分頁新增、切換、關閉與 Dirty 狀態同步。
+    - 優化了範例載入流程，改為開啟新分頁以保護原始範例。
+    - 修復了 MDI 架構下的積木搜尋、焦點轉移與快捷鍵失效問題。
 
